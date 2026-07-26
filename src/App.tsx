@@ -38,23 +38,33 @@ const districts: Array<{ id: DistrictId; icon: string; name: string; building: s
   { id: 'curiosity', icon: 'curiosity', name: 'Curiosity District', building: 'Research Center', skill: 'Questions & discovery', color: 'purple', image: '/images/districts/research-center.webp' },
 ]
 
-type MangaUnlock = { label: string; url: string; cost: number; format?: 'chapter' | 'volume' }
-const comicBooks: Array<{ id: ComicId; title: string; subtitle: string; image: string; source: string; unlocks: MangaUnlock[] }> = [
-  { id: 'skyLibrary', title: 'One Piece', subtitle: 'Gear 5 Luffy Collection', image: '/images/manga/one-piece-gear-5.png', source: 'https://one-piece.com/', unlocks: [
-    { label: 'Chapter 1', url: 'https://www.viz.com/shonenjump/one-piece-chapter-1/chapter/5090?action=read', cost: 140 },
-    { label: 'Chapter 2', url: 'https://www.viz.com/shonenjump/one-piece-chapter-2/chapter/5091?action=read', cost: 240 },
-    { label: 'Chapter 3', url: 'https://www.viz.com/shonenjump/one-piece-chapter-3/chapter/5092?action=read', cost: 360 },
-  ] },
-  { id: 'gearbound', title: 'Jujutsu Kaisen', subtitle: 'Gojo Satoru Collection', image: '/images/manga/jjk-gojo.png', source: 'https://jujutsukaisen.jp/', unlocks: [
-    { label: 'Chapter 1', url: 'https://mangaplus.shueisha.co.jp/viewer/1001279', cost: 120 },
-    { label: 'Chapter 2', url: 'https://mangaplus.shueisha.co.jp/viewer/1001280', cost: 220 },
-    { label: 'Chapter 3', url: 'https://mangaplus.shueisha.co.jp/viewer/1001281', cost: 340 },
-  ] },
-  { id: 'starScouts', title: 'Classroom of the Elite', subtitle: 'Ayanokoji Collection', image: 'https://i.pinimg.com/736x/19/ff/ee/19ffee4239d4ed94b7715d44bdb86cf6.jpg', source: 'https://you-zitsu.com/', unlocks: [
-    { label: 'Volume 1', url: 'https://sevenseasentertainment.com/books/classroom-of-the-elite-manga-vol-1/', cost: 160, format: 'volume' },
-    { label: 'Volume 2', url: 'https://sevenseasentertainment.com/books/classroom-of-the-elite-manga-vol-2/', cost: 260, format: 'volume' },
-    { label: 'Volume 3', url: 'https://sevenseasentertainment.com/books/classroom-of-the-elite-manga-vol-3/', cost: 380, format: 'volume' },
-  ] },
+type MangaUnlock = { label: string; url: string; cost: number; format: 'chapter' | 'volume'; direct: boolean }
+type MangaBook = { id: ComicId; title: string; subtitle: string; image: string; source: string; total: number; format: 'chapter' | 'volume'; getUnlock: (index: number) => MangaUnlock }
+const rewardCost = (index: number, base: number) => base + Math.min(Math.floor(index / 10) * 10, 360)
+const comicBooks: MangaBook[] = [
+  { id: 'skyLibrary', title: 'One Piece', subtitle: 'Gear 5 Luffy Collection', image: '/images/manga/one-piece-gear-5.png', source: 'https://one-piece.com/', total: 1188, format: 'chapter', getUnlock: (index) => {
+    const chapter = index + 1
+    const directReaders: Record<number, string> = {
+      1: 'https://www.viz.com/shonenjump/one-piece-chapter-1/chapter/5090?action=read',
+      2: 'https://www.viz.com/shonenjump/one-piece-chapter-2/chapter/5091?action=read',
+      3: 'https://www.viz.com/shonenjump/one-piece-chapter-3/chapter/5092?action=read',
+      1188: 'https://www.viz.com/shonenjump/one-piece-chapter-1188/chapter/50757?action=read',
+    }
+    return { label: `Chapter ${chapter}`, url: directReaders[chapter] ?? 'https://www.viz.com/shonenjump/chapters/one-piece', cost: rewardCost(index, 140), format: 'chapter', direct: Boolean(directReaders[chapter]) }
+  } },
+  { id: 'gearbound', title: 'Jujutsu Kaisen', subtitle: 'Gojo Satoru Collection', image: '/images/manga/jjk-gojo.png', source: 'https://jujutsukaisen.jp/', total: 271, format: 'chapter', getUnlock: (index) => {
+    const chapter = index + 1
+    const directReaders: Record<number, string> = {
+      1: 'https://mangaplus.shueisha.co.jp/viewer/1001279',
+      2: 'https://mangaplus.shueisha.co.jp/viewer/1001280',
+      3: 'https://mangaplus.shueisha.co.jp/viewer/1001281',
+    }
+    return { label: `Chapter ${chapter}`, url: directReaders[chapter] ?? 'https://www.viz.com/shonenjump/chapters/jujutsu-kaisen', cost: rewardCost(index, 120), format: 'chapter', direct: Boolean(directReaders[chapter]) }
+  } },
+  { id: 'starScouts', title: 'Classroom of the Elite', subtitle: 'Ayanokoji Collection', image: 'https://i.pinimg.com/736x/19/ff/ee/19ffee4239d4ed94b7715d44bdb86cf6.jpg', source: 'https://you-zitsu.com/', total: 12, format: 'volume', getUnlock: (index) => {
+    const volume = index + 1
+    return { label: `Volume ${volume}`, url: `https://sevenseasentertainment.com/books/classroom-of-the-elite-manga-vol-${volume}/`, cost: rewardCost(index, 160), format: 'volume', direct: true }
+  } },
 ]
 
 const art = {
@@ -246,14 +256,15 @@ function Academy({ city, stats, xp, startQuest, onMaterialReward }: { city: City
   )
 }
 
-function ComicShelf({ xp, progress, onUnlock }: { xp: number; progress: ComicProgress; onUnlock: (comic: ComicId, cost: number) => boolean }) {
+function ComicShelf({ xp, progress, onUnlock }: { xp: number; progress: ComicProgress; onUnlock: (comic: ComicId, cost: number, total: number) => boolean }) {
   const [reading, setReading] = useState<{ comic: ComicId; chapter: number } | null>(null)
   const [shopMessage, setShopMessage] = useState('')
   const openComic = reading ? comicBooks.find((comic) => comic.id === reading.comic)! : null
+  const openReward = reading && openComic ? openComic.getUnlock(reading.chapter) : null
   const unlock = (comic: typeof comicBooks[number]) => {
     const nextChapter = progress[comic.id]
-    const reward = comic.unlocks[nextChapter]
-    if (onUnlock(comic.id, reward.cost)) setShopMessage(`${comic.title}: ${reward.label} unlocked!`)
+    const reward = comic.getUnlock(nextChapter)
+    if (onUnlock(comic.id, reward.cost, comic.total)) setShopMessage(`${comic.title}: ${reward.label} unlocked!`)
     else setShopMessage(`You need ${reward.cost - xp} more XP. Complete quests or defeat the Boss.`)
   }
 
@@ -264,19 +275,26 @@ function ComicShelf({ xp, progress, onUnlock }: { xp: number; progress: ComicPro
       {shopMessage && <div className="shop-message" role="status"><Icon name="sparkles" />{shopMessage}</div>}
       <div className="comic-grid">{comicBooks.map((comic) => {
         const unlocked = progress[comic.id]
-        const complete = unlocked >= comic.unlocks.length
+        const complete = unlocked >= comic.total
+        const nextReward = comic.getUnlock(Math.min(unlocked, comic.total - 1))
+        const railStart = Math.max(0, Math.min(unlocked - 2, comic.total - 6))
+        const rail = Array.from({ length: Math.min(6, comic.total) }, (_, offset) => railStart + offset)
         return <article className="comic-book" data-comic={comic.id} key={comic.id}>
-          <div className="comic-cover"><img src={comic.image} alt={`${comic.subtitle} anime artwork`} loading="lazy" referrerPolicy="no-referrer" /><span>{comic.subtitle}</span><h3>{comic.title}</h3><i>{unlocked}/{comic.unlocks.length} UNLOCKED</i><a href={comic.source} target="_blank" rel="noreferrer">Official source ↗</a></div>
-          <div className="chapter-dots">{comic.unlocks.map((reward, index) => <button disabled={index >= unlocked} className={index < unlocked ? 'open' : ''} onClick={() => setReading({ comic: comic.id, chapter: index })} key={reward.label}>{index < unlocked ? <BookOpen /> : '🔒'}<span>{reward.label}</span></button>)}</div>
-          {complete ? <button className="button button-green" onClick={() => setReading({ comic: comic.id, chapter: unlocked - 1 })}>OPEN LATEST UNLOCK</button> : <button className="button comic-unlock" onClick={() => unlock(comic)}>UNLOCK {comic.unlocks[unlocked].label.toUpperCase()} · {comic.unlocks[unlocked].cost} XP</button>}
+          <div className="comic-cover"><img src={comic.image} alt={`${comic.subtitle} anime artwork`} loading="lazy" referrerPolicy="no-referrer" /><span>{comic.subtitle}</span><h3>{comic.title}</h3><i>{unlocked}/{comic.total} {comic.format === 'volume' ? 'VOLUMES' : 'CHAPTERS'}</i><a href={comic.source} target="_blank" rel="noreferrer">Official source ↗</a></div>
+          <div className="chapter-dots">{rail.map((index) => {
+            const reward = comic.getUnlock(index)
+            return <button disabled={index >= unlocked} className={index < unlocked ? 'open' : index === unlocked ? 'next' : ''} onClick={() => setReading({ comic: comic.id, chapter: index })} key={reward.label}>{index < unlocked ? <BookOpen /> : '🔒'}<span>{reward.label}</span></button>
+          })}</div>
+          {unlocked > 0 && <label className="chapter-jump"><span>Open an unlocked {comic.format}</span><select value="" onChange={(event) => event.target.value && setReading({ comic: comic.id, chapter: Number(event.target.value) })}><option value="">Choose…</option>{Array.from({ length: unlocked }, (_, index) => <option value={index} key={index}>{comic.getUnlock(index).label}</option>)}</select></label>}
+          {complete ? <button className="button button-green" onClick={() => setReading({ comic: comic.id, chapter: unlocked - 1 })}>OPEN LATEST UNLOCK</button> : <button className="button comic-unlock" onClick={() => unlock(comic)}>UNLOCK {nextReward.label.toUpperCase()} · {nextReward.cost} XP</button>}
         </article>
       })}</div>
-      {reading && openComic && <div className="reader-backdrop" role="dialog" aria-modal="true" aria-label={`${openComic.title} reward unlocked`} onClick={() => setReading(null)}><article className="comic-reader reward-reader" onClick={(event) => event.stopPropagation()}><button className="reader-close" onClick={() => setReading(null)}>×</button><img src={openComic.image} alt="" referrerPolicy="no-referrer" /><div><span className="eyebrow">MANGA REWARD UNLOCKED</span><h2>{openComic.unlocks[reading.chapter].label}</h2><p>You earned this with your Brain Builder XP. There is no lesson or assessment here—enjoy your reward.</p><small>{openComic.unlocks[reading.chapter].format === 'volume' ? 'This publisher provides official volume pages rather than individual chapter readers. ' : ''}Reading availability, region restrictions, and subscriptions are controlled by the official publisher.</small><a className="button button-gold" href={openComic.unlocks[reading.chapter].url} target="_blank" rel="noreferrer">OPEN OFFICIAL {openComic.unlocks[reading.chapter].format === 'volume' ? 'VOLUME PAGE' : 'CHAPTER'} ↗</a></div></article></div>}
+      {reading && openComic && openReward && <div className="reader-backdrop" role="dialog" aria-modal="true" aria-label={`${openComic.title} reward unlocked`} onClick={() => setReading(null)}><article className="comic-reader reward-reader" onClick={(event) => event.stopPropagation()}><button className="reader-close" onClick={() => setReading(null)}>×</button><img src={openComic.image} alt="" referrerPolicy="no-referrer" /><div><span className="eyebrow">MANGA REWARD UNLOCKED</span><h2>{openReward.label}</h2><p>You earned this with your Brain Builder XP. There is no lesson or assessment here—enjoy your reward.</p><small>{openReward.format === 'volume' ? 'This publisher provides official volume pages rather than individual chapter readers. ' : !openReward.direct ? 'The publisher catalog will open so you can select this chapter under its availability rules. ' : ''}Reading availability, region restrictions, and subscriptions are controlled by the official publisher.</small><a className="button button-gold" href={openReward.url} target="_blank" rel="noreferrer">OPEN OFFICIAL {openReward.format === 'volume' ? 'VOLUME PAGE' : openReward.direct ? 'CHAPTER' : 'CHAPTER CATALOG'} ↗</a></div></article></div>}
     </section>
   )
 }
 
-function Library({ xp, comics, onUnlock }: { xp: number; comics: ComicProgress; onUnlock: (comic: ComicId, cost: number) => boolean }) {
+function Library({ xp, comics, onUnlock }: { xp: number; comics: ComicProgress; onUnlock: (comic: ComicId, cost: number, total: number) => boolean }) {
   return (
     <main className="page library-page">
       <section className="library-hero">
@@ -633,10 +651,10 @@ function App() {
       activityDates: [...new Set([...current.activityDates, new Date().toISOString().slice(0, 10)])].slice(-60),
     }))
   }
-  const unlockComic = (comic: ComicId, cost: number) => {
+  const unlockComic = (comic: ComicId, cost: number, total: number) => {
     if (!canAfford(xp, cost)) return false
     setXp((current) => current - cost)
-    setComics((current) => ({ ...current, [comic]: nextComicChapter(current[comic]) }))
+    setComics((current) => ({ ...current, [comic]: nextComicChapter(current[comic], total) }))
     return true
   }
   const completeMaterial = (reward: number) => {

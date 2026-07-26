@@ -25,9 +25,9 @@ const profileSchema = z.object({
     activityDates: z.array(z.iso.date()).max(60),
   }),
   comics: z.object({
-    gearbound: z.number().int().min(0).max(3),
-    skyLibrary: z.number().int().min(0).max(3),
-    starScouts: z.number().int().min(0).max(3),
+    gearbound: z.number().int().min(0).max(271),
+    skyLibrary: z.number().int().min(0).max(1188),
+    starScouts: z.number().int().min(0).max(12),
   }),
   learnerBand: z.enum(learnerBands).default('middle'),
 })

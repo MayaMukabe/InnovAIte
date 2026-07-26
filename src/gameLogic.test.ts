@@ -25,6 +25,8 @@ describe('XP comic economy', () => {
   it('never unlocks beyond the final chapter', () => {
     expect(nextComicChapter(2)).toBe(3)
     expect(nextComicChapter(3)).toBe(3)
+    expect(nextComicChapter(270, 271)).toBe(271)
+    expect(nextComicChapter(271, 271)).toBe(271)
   })
 })
 
