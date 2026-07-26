@@ -40,17 +40,17 @@ const districts: Array<{ id: DistrictId; icon: string; name: string; building: s
 
 type MangaUnlock = { label: string; url: string; cost: number; format?: 'chapter' | 'volume' }
 const comicBooks: Array<{ id: ComicId; title: string; subtitle: string; image: string; source: string; unlocks: MangaUnlock[] }> = [
-  { id: 'gearbound', title: 'Jujutsu Kaisen', subtitle: 'Gojo Satoru Collection', image: 'https://jujutsukaisen.jp/images/chara_category6/chara_detail1_2nd.png', source: 'https://jujutsukaisen.jp/character/category6.php', unlocks: [
-    { label: 'Chapter 1', url: 'https://mangaplus.shueisha.co.jp/viewer/1001279', cost: 120 },
-    { label: 'Chapter 2', url: 'https://mangaplus.shueisha.co.jp/viewer/1001280', cost: 220 },
-    { label: 'Chapter 3', url: 'https://mangaplus.shueisha.co.jp/viewer/1001281', cost: 340 },
-  ] },
-  { id: 'skyLibrary', title: 'One Piece', subtitle: 'Gear 5 Luffy Collection', image: 'https://one-piece.com/img/figure/0425_101701101701-main.jpg', source: 'https://one-piece.com/figure/66345/index.html', unlocks: [
+  { id: 'skyLibrary', title: 'One Piece', subtitle: 'Gear 5 Luffy Collection', image: 'https://img.ixbt.site/live/images/original/16/95/46/2025/08/19/99813c56a3.png?w=877', source: 'https://one-piece.com/', unlocks: [
     { label: 'Chapter 1', url: 'https://www.viz.com/shonenjump/one-piece-chapter-1/chapter/5090?action=read', cost: 140 },
     { label: 'Chapter 2', url: 'https://www.viz.com/shonenjump/one-piece-chapter-2/chapter/5091?action=read', cost: 240 },
     { label: 'Chapter 3', url: 'https://www.viz.com/shonenjump/one-piece-chapter-3/chapter/5092?action=read', cost: 360 },
   ] },
-  { id: 'starScouts', title: 'Classroom of the Elite', subtitle: 'Ayanokoji Collection', image: 'https://you-zitsu.com/1st/assets/character/1.png', source: 'https://you-zitsu.com/1st/character/', unlocks: [
+  { id: 'gearbound', title: 'Jujutsu Kaisen', subtitle: 'Gojo Satoru Collection', image: 'https://www.animeclick.it/prove/img_tmp/202209/765b31b47db31884ab90e2caeba74673.jpg', source: 'https://jujutsukaisen.jp/', unlocks: [
+    { label: 'Chapter 1', url: 'https://mangaplus.shueisha.co.jp/viewer/1001279', cost: 120 },
+    { label: 'Chapter 2', url: 'https://mangaplus.shueisha.co.jp/viewer/1001280', cost: 220 },
+    { label: 'Chapter 3', url: 'https://mangaplus.shueisha.co.jp/viewer/1001281', cost: 340 },
+  ] },
+  { id: 'starScouts', title: 'Classroom of the Elite', subtitle: 'Ayanokoji Collection', image: 'https://i.pinimg.com/736x/19/ff/ee/19ffee4239d4ed94b7715d44bdb86cf6.jpg', source: 'https://you-zitsu.com/', unlocks: [
     { label: 'Volume 1', url: 'https://sevenseasentertainment.com/books/classroom-of-the-elite-manga-vol-1/', cost: 160, format: 'volume' },
     { label: 'Volume 2', url: 'https://sevenseasentertainment.com/books/classroom-of-the-elite-manga-vol-2/', cost: 260, format: 'volume' },
     { label: 'Volume 3', url: 'https://sevenseasentertainment.com/books/classroom-of-the-elite-manga-vol-3/', cost: 380, format: 'volume' },
@@ -265,7 +265,7 @@ function ComicShelf({ xp, progress, onUnlock }: { xp: number; progress: ComicPro
       <div className="comic-grid">{comicBooks.map((comic) => {
         const unlocked = progress[comic.id]
         const complete = unlocked >= comic.unlocks.length
-        return <article className="comic-book" key={comic.id}>
+        return <article className="comic-book" data-comic={comic.id} key={comic.id}>
           <div className="comic-cover"><img src={comic.image} alt={`${comic.subtitle} official promotional artwork`} loading="lazy" referrerPolicy="no-referrer" /><span>{comic.subtitle}</span><h3>{comic.title}</h3><i>{unlocked}/{comic.unlocks.length} UNLOCKED</i><a href={comic.source} target="_blank" rel="noreferrer">Official source ↗</a></div>
           <div className="chapter-dots">{comic.unlocks.map((reward, index) => <button disabled={index >= unlocked} className={index < unlocked ? 'open' : ''} onClick={() => setReading({ comic: comic.id, chapter: index })} key={reward.label}>{index < unlocked ? <BookOpen /> : '🔒'}<span>{reward.label}</span></button>)}</div>
           {complete ? <button className="button button-green" onClick={() => setReading({ comic: comic.id, chapter: unlocked - 1 })}>OPEN LATEST UNLOCK</button> : <button className="button comic-unlock" onClick={() => unlock(comic)}>UNLOCK {comic.unlocks[unlocked].label.toUpperCase()} · {comic.unlocks[unlocked].cost} XP</button>}
