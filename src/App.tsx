@@ -127,12 +127,6 @@ function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: L
   })
   const activeDates = new Set(stats.activityDates ?? [])
   const weeklyWins = weekDates.filter((date) => activeDates.has(date)).length
-  const achievements = [
-    { icon: '⌂', name: 'City Founder', unlocked: totalGrowth >= 12 },
-    { icon: '◎', name: 'Deep Thinker', unlocked: stats.reflectionsWritten >= 3 },
-    { icon: 'ϟ', name: 'Boss Breaker', unlocked: stats.bossWins >= 1 },
-    { icon: '★', name: 'First-Try Hero', unlocked: stats.firstTryWins >= 3 },
-  ]
   const exportReport = () => {
     const report = {
       generatedAt: new Date().toISOString(),
@@ -226,7 +220,6 @@ function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: L
             <button className="report-button" onClick={exportReport}><Icon name="⇩" /> Export my private progress report</button>
           </article>
         </div>
-        <div className="achievement-row">{achievements.map((badge) => <article className={badge.unlocked ? 'unlocked' : ''} key={badge.name}><Icon name={badge.icon} /><div><strong>{badge.name}</strong><span>{badge.unlocked ? 'Unlocked' : 'Keep growing to unlock'}</span></div></article>)}</div>
       </section>
 
     </main>
@@ -276,7 +269,6 @@ function Library({ xp, comics, onUnlock, onMaterialReward }: { xp: number; comic
         <div className="recent-grid">
           <article className="recent-card"><div className="ring">75%</div><div><h3>Algebra Alchemy</h3><p>Chapter 4 · Linear Potions</p><button className="small-button">Resume →</button></div></article>
           <article className="recent-card"><div className="ring ring-blue">30%</div><div><h3>Logic Spells</h3><p>Level 1 · Boolean Runes</p><button className="small-button">Resume →</button></div></article>
-          <article className="upload-card"><Icon name="upload" /><div><h3>Add your study materials</h3><p>Turn teacher-approved notes into private practice.</p></div><button className="button button-blue" onClick={() => document.querySelector('.material-studio')?.scrollIntoView({ behavior: 'smooth' })}>OPEN STUDIO</button></article>
         </div>
       </section>
       <section className="section">
