@@ -22,6 +22,13 @@ type LearningStats = {
 }
 type ComicId = 'gearbound' | 'skyLibrary' | 'starScouts'
 type ComicProgress = Record<ComicId, number>
+type LearnerBand = 'middle' | 'high' | 'proficient'
+
+const learnerBandLabels: Record<LearnerBand, string> = {
+  middle: 'Middle School',
+  high: 'High School',
+  proficient: 'Proficient',
+}
 
 const districts: Array<{ id: DistrictId; icon: string; name: string; building: string; skill: string; color: string; image: string }> = [
   { id: 'memory', icon: 'memory', name: 'Memory District', building: 'Grand Library', skill: 'Recall & retention', color: 'green', image: '/images/districts/grand-library.webp' },
@@ -71,14 +78,18 @@ const Icon = ({ name }: { name: string }) => {
   return <Component className="icon" aria-hidden="true" strokeWidth={2.4} />
 }
 
-function Header({ xp, syncStatus }: { xp: number; syncStatus: 'loading' | 'synced' | 'offline' }) {
+function Header({ xp, learnerBand, onBandChange, syncStatus }: { xp: number; learnerBand: LearnerBand; onBandChange: (band: LearnerBand) => void; syncStatus: 'loading' | 'synced' | 'offline' }) {
   return (
     <header className="topbar">
       <div className="brand">
         <img src={art.avatar} alt="" />
         <div><strong>HERO</strong><span>ACADEMY</span></div>
       </div>
-      <div className="header-progress"><span className={`sync-chip ${syncStatus}`}><i />{syncStatus === 'loading' ? 'Connecting' : syncStatus === 'synced' ? 'Progress synced' : 'Offline mode'}</span><div className="level-pill"><Icon name="✦" /><span>LEVEL {Math.floor(xp / 200) + 1}</span><strong>{xp} XP</strong></div></div>
+      <div className="header-progress">
+        <label className="band-picker"><span>LEARNING LEVEL</span><select value={learnerBand} onChange={(event) => onBandChange(event.target.value as LearnerBand)}>{Object.entries(learnerBandLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+        <span className={`sync-chip ${syncStatus}`}><i />{syncStatus === 'loading' ? 'Connecting' : syncStatus === 'synced' ? 'Progress synced' : 'Offline mode'}</span>
+        <div className="level-pill"><Icon name="✦" /><span>HERO LEVEL {Math.floor(xp / 200) + 1}</span><strong>{xp} XP</strong></div>
+      </div>
     </header>
   )
 }
@@ -404,7 +415,7 @@ const questContent: Record<DistrictId, QuestContent> = {
   curiosity: { prompt: 'Which question would best begin an investigation about plant growth?', answers: ['Are plants nice?', 'Which color is best?', 'How does light duration affect height?', 'Do I like plants?'], correct: 2, think: 'A strong research question identifies something measurable.' },
 }
 
-function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId; onComplete: (district: DistrictId, xp: number, firstTry: boolean) => void; goHome: () => void }) {
+function BrainQuest({ districtId, learnerBand, onComplete, goHome }: { districtId: DistrictId; learnerBand: LearnerBand; onComplete: (district: DistrictId, xp: number, firstTry: boolean) => void; goHome: () => void }) {
   const district = districts.find((item) => item.id === districtId)!
   const [content, setContent] = useState<QuestContent>(questContent[districtId])
   const [stage, setStage] = useState<'think' | 'attempt' | 'reflect' | 'grown'>('think')
@@ -422,13 +433,13 @@ function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId
         : 'Trust your first strategy, then adjust if the evidence changes.'
 
   useEffect(() => {
-    loadDistrictQuestions(districtId)
+    loadDistrictQuestions(districtId, learnerBand)
       .then((questions) => {
         const day = Math.floor(Date.now() / 86_400_000)
         setContent(questions[day % questions.length])
       })
       .catch(() => setContent(questContent[districtId]))
-  }, [districtId])
+  }, [districtId, learnerBand])
 
   const checkAnswer = async () => {
     if (answer === null) return
@@ -470,7 +481,7 @@ function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId
   return (
     <main className="page brain-quest-page">
       <button className="back-button" onClick={goHome}>← Back to Brain City</button>
-      <div className="quest-heading"><div className={`quest-district-icon ${district.color}`}><Icon name={district.icon} /></div><div><span className="eyebrow">{district.name}</span><h1>{stage === 'grown' ? `${district.building} upgraded!` : 'Think first. Grow stronger.'}</h1></div></div>
+      <div className="quest-heading"><div className={`quest-district-icon ${district.color}`}><Icon name={district.icon} /></div><div><span className="eyebrow">{district.name} · {learnerBandLabels[learnerBand]}</span><h1>{stage === 'grown' ? `${district.building} upgraded!` : 'Think first. Grow stronger.'}</h1></div></div>
       {stage === 'grown' ? (
         <section className="growth-result">
           <div className={`upgrade-building ${district.color}`}><img src={district.image} alt={`${district.building} upgraded`} /><span>↑</span></div>
@@ -504,6 +515,7 @@ function App() {
   const [syncStatus, setSyncStatus] = useState<'loading' | 'synced' | 'offline'>('loading')
   const [syncReady, setSyncReady] = useState(false)
   const [activeDistrict, setActiveDistrict] = useState<DistrictId>('logic')
+  const [learnerBand, setLearnerBand] = useState<LearnerBand>(() => (localStorage.getItem('brain-builder-band') as LearnerBand) || 'middle')
   const [xp, setXp] = useState(() => Number(localStorage.getItem('brain-builder-xp')) || 450)
   const [city, setCity] = useState<CityProgress>(() => {
     const saved = localStorage.getItem('brain-builder-city')
@@ -524,13 +536,15 @@ function App() {
     localStorage.setItem('brain-builder-xp', String(xp))
     localStorage.setItem('brain-builder-stats', JSON.stringify(stats))
     localStorage.setItem('brain-builder-comics', JSON.stringify(comics))
-  }, [city, comics, stats, xp])
+    localStorage.setItem('brain-builder-band', learnerBand)
+  }, [city, comics, learnerBand, stats, xp])
 
   useEffect(() => {
     loadProfile()
       .then((profile) => {
         if (profile) {
           setXp(profile.xp)
+          setLearnerBand(profile.learnerBand ?? 'middle')
           setCity({ memory: 1, logic: 1, reading: 1, creativity: 1, curiosity: 1, ...profile.city } as CityProgress)
           setStats({
             questsCompleted: profile.stats.questsCompleted ?? 0,
@@ -551,12 +565,12 @@ function App() {
   useEffect(() => {
     if (!syncReady) return
     const sync = window.setTimeout(() => {
-      saveProfile({ xp, city, stats, comics })
+      saveProfile({ xp, learnerBand, city, stats, comics })
         .then(() => setSyncStatus('synced'))
         .catch(() => setSyncStatus('offline'))
     }, 500)
     return () => window.clearTimeout(sync)
-  }, [city, comics, stats, syncReady, xp])
+  }, [city, comics, learnerBand, stats, syncReady, xp])
 
   const startQuest = (district: DistrictId) => {
     setActiveDistrict(district)
@@ -598,11 +612,11 @@ function App() {
 
   return (
     <div className="app">
-      <Header xp={xp} syncStatus={syncStatus} />
+      <Header xp={xp} learnerBand={learnerBand} onBandChange={setLearnerBand} syncStatus={syncStatus} />
       {screen === 'academy' && <Academy city={city} stats={stats} xp={xp} startQuest={startQuest} />}
       {screen === 'library' && <Library xp={xp} comics={comics} onUnlock={unlockComic} onMaterialReward={completeMaterial} />}
       {screen === 'boss' && <GlitchBoss onReward={completeBoss} />}
-      {screen === 'quests' && <BrainQuest districtId={activeDistrict} onComplete={completeQuest} goHome={() => setScreen('academy')} />}
+      {screen === 'quests' && <BrainQuest districtId={activeDistrict} learnerBand={learnerBand} onComplete={completeQuest} goHome={() => setScreen('academy')} />}
       <Nav screen={screen} onChange={setScreen} />
     </div>
   )

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { PDFParse } from 'pdf-parse'
 import { z } from 'zod'
 import { buildStudySet, safeStudySet, type MaterialStudySet } from './materials.js'
-import { districtQuestions } from './questions.js'
+import { learnerBands, questionById, questionsFor, type District } from './questions.js'
 import { readDatabase, updateDatabase } from './store.js'
 
 const app = express()
@@ -32,6 +32,7 @@ const profileSchema = z.object({
     skyLibrary: z.number().int().min(0).max(3),
     starScouts: z.number().int().min(0).max(3),
   }),
+  learnerBand: z.enum(learnerBands).default('middle'),
 })
 
 app.disable('x-powered-by')
@@ -72,11 +73,13 @@ app.put('/api/profile/:id', async (request, response, next) => {
 })
 
 app.get('/api/questions/district/:district', (request, response) => {
-  const district = request.params.district as keyof typeof districtQuestions
-  const questions = districtQuestions[district]
-  if (!questions) return response.status(404).json({ error: 'Unknown district.' })
-  response.json(questions.map((question, index) => ({
-    id: `${district}-${index}`,
+  const district = request.params.district as District
+  const band = z.enum(learnerBands).catch('middle').parse(request.query.band)
+  const questions = questionsFor(district, band)
+  if (!questions.length) return response.status(404).json({ error: 'Unknown district.' })
+  response.json(questions.map((question) => ({
+    id: question.id,
+    band: question.band,
     prompt: question.prompt,
     answers: question.answers,
     think: question.think,
@@ -84,11 +87,10 @@ app.get('/api/questions/district/:district', (request, response) => {
 })
 
 app.post('/api/questions/district/:district/check', (request, response) => {
-  const district = request.params.district as keyof typeof districtQuestions
-  const parsed = z.object({ questionId: z.string(), answer: z.number().int() }).parse(request.body)
-  const index = Number(parsed.questionId.split('-').at(-1))
-  const question = districtQuestions[district]?.[index]
-  if (!question) return response.status(404).json({ error: 'Question not found.' })
+  const district = request.params.district as District
+  const parsed = z.object({ questionId: z.string(), answer: z.number().int().min(0).max(3) }).parse(request.body)
+  const question = questionById(parsed.questionId)
+  if (!question || question.district !== district) return response.status(404).json({ error: 'Question not found.' })
   response.json({ correct: parsed.answer === question.correct, guidance: parsed.answer === question.correct ? null : question.think })
 })
 

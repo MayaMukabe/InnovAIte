@@ -1,5 +1,6 @@
 export type ProfilePayload = {
   xp: number
+  learnerBand: 'middle' | 'high' | 'proficient'
   city: Record<string, number>
   stats: {
     questsCompleted: number
@@ -34,8 +35,8 @@ export type DistrictQuestion = {
   think: string
 }
 
-export async function loadDistrictQuestions(district: string): Promise<DistrictQuestion[]> {
-  const response = await fetch(`/api/questions/district/${district}`)
+export async function loadDistrictQuestions(district: string, band: ProfilePayload['learnerBand']): Promise<DistrictQuestion[]> {
+  const response = await fetch(`/api/questions/district/${district}?band=${band}`)
   if (!response.ok) throw new Error('Question service unavailable.')
   return response.json() as Promise<DistrictQuestion[]>
 }

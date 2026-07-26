@@ -4,6 +4,7 @@ import path from 'node:path'
 export type StoredProfile = {
   id: string
   xp: number
+  learnerBand: 'middle' | 'high' | 'proficient'
   city: Record<string, number>
   stats: Record<string, number | string[]>
   comics: Record<string, number>
