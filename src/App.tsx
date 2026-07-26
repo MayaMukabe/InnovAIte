@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { bossDamage, bossReward, canAfford, nextComicChapter, nextDistrictLevel, questReward } from './gameLogic'
 import MaterialStudio from './MaterialStudio'
-import { loadProfile, saveProfile } from './api'
+import { checkDistrictAnswer, loadDistrictQuestions, loadProfile, saveProfile } from './api'
 
 type Screen = 'academy' | 'quests' | 'boss' | 'library'
 type DistrictId = 'memory' | 'logic' | 'reading' | 'creativity' | 'curiosity'
@@ -381,7 +381,9 @@ function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: num
   )
 }
 
-const questContent: Record<DistrictId, { prompt: string; answers: string[]; correct: number; think: string }> = {
+type QuestContent = { id?: string; prompt: string; answers: string[]; correct?: number; think: string }
+
+const questContent: Record<DistrictId, QuestContent> = {
   memory: { prompt: 'Study this sequence: Moon, Key, River, Star. Which item came second?', answers: ['River', 'Key', 'Moon', 'Star'], correct: 1, think: 'Picture each object in a different room of your home.' },
   logic: { prompt: 'A robot has 3 boxes with 4 gears in each. How many gears are there?', answers: ['7', '10', '12', '14'], correct: 2, think: 'How could equal groups help you model the problem?' },
   reading: { prompt: 'Maya packed an umbrella because dark clouds filled the sky. What can you infer?', answers: ['It may rain', 'It is nighttime', 'She is traveling', 'It is snowing'], correct: 0, think: 'Connect the clue in the sentence to what usually happens next.' },
@@ -391,12 +393,13 @@ const questContent: Record<DistrictId, { prompt: string; answers: string[]; corr
 
 function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId; onComplete: (district: DistrictId, xp: number, firstTry: boolean) => void; goHome: () => void }) {
   const district = districts.find((item) => item.id === districtId)!
-  const content = questContent[districtId]
+  const [content, setContent] = useState<QuestContent>(questContent[districtId])
   const [stage, setStage] = useState<'think' | 'attempt' | 'reflect' | 'grown'>('think')
   const [answer, setAnswer] = useState<number | null>(null)
   const [reflection, setReflection] = useState('')
   const [message, setMessage] = useState('')
   const [attempts, setAttempts] = useState(0)
+  const [checking, setChecking] = useState(false)
   const coachLine = stage === 'think'
     ? `Try this: ${content.think}`
     : stage === 'attempt' && attempts > 0
@@ -405,14 +408,41 @@ function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId
         ? 'You solved it—now teach the strategy back to me. Teaching makes the pathway stronger!'
         : 'Trust your first strategy, then adjust if the evidence changes.'
 
-  const checkAnswer = () => {
+  useEffect(() => {
+    loadDistrictQuestions(districtId)
+      .then((questions) => {
+        const day = Math.floor(Date.now() / 86_400_000)
+        setContent(questions[day % questions.length])
+      })
+      .catch(() => setContent(questContent[districtId]))
+  }, [districtId])
+
+  const checkAnswer = async () => {
+    if (answer === null) return
     setAttempts((value) => value + 1)
-    if (answer === content.correct) {
+    setChecking(true)
+    let isCorrect = answer === content.correct
+    let guidance = content.think
+    try {
+      if (content.id) {
+        const result = await checkDistrictAnswer(districtId, content.id, answer)
+        isCorrect = result.correct
+        guidance = result.guidance ?? content.think
+      }
+    } catch {
+      if (content.correct === undefined) {
+        setMessage('Spark lost the connection before checking. Try again when the sync light returns.')
+        setChecking(false)
+        return
+      }
+    }
+    if (isCorrect) {
       setMessage('You found it. Now explain the thinking that got you there.')
       setStage('reflect')
     } else {
-      setMessage(`Good attempt. Coach clue: ${content.think}`)
+      setMessage(`Good attempt. Coach clue: ${guidance}`)
     }
+    setChecking(false)
   }
   const grow = () => {
     if (reflection.trim().split(/\s+/).length < 5) {
@@ -446,7 +476,7 @@ function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId
           </aside>
           <article className="learning-card">
             {stage === 'think' && <><span className="eyebrow">THINK BEFORE ANSWERS</span><h2>{content.prompt}</h2><div className="think-pause"><Icon name="◎" /><div><strong>Take a thinking pause</strong><p>Build a strategy in your head before choices appear.</p></div></div><button className="button button-blue" onClick={() => setStage('attempt')}>I HAVE A STRATEGY →</button></>}
-            {stage === 'attempt' && <><span className="eyebrow">YOUR ATTEMPT</span><h2>{content.prompt}</h2><div className="answer-grid">{content.answers.map((item, index) => <button className={answer === index ? 'selected' : ''} onClick={() => setAnswer(index)} key={item}><span>{String.fromCharCode(65 + index)}</span>{item}</button>)}</div><button className="button button-blue" disabled={answer === null} onClick={checkAnswer}>CHECK MY THINKING →</button></>}
+            {stage === 'attempt' && <><span className="eyebrow">YOUR ATTEMPT</span><h2>{content.prompt}</h2><div className="answer-grid">{content.answers.map((item, index) => <button className={answer === index ? 'selected' : ''} disabled={checking} onClick={() => setAnswer(index)} key={item}><span>{String.fromCharCode(65 + index)}</span>{item}</button>)}</div><button className="button button-blue" disabled={answer === null || checking} onClick={checkAnswer}>{checking ? 'CHECKING WITH REVIEWED BANK…' : 'CHECK MY THINKING →'}</button></>}
             {stage === 'reflect' && <><span className="eyebrow">MAKE THINKING VISIBLE</span><h2>How did you decide?</h2><p>Explain your strategy in your own words. There is more than one good way to think.</p><textarea value={reflection} onChange={(event) => setReflection(event.target.value)} rows={6} placeholder="I noticed... so I decided..." autoFocus /><button className="button button-green" onClick={grow}>BUILD MY DISTRICT <Icon name="✦" /></button></>}
             {message && <div className="coach-message" role="status"><Icon name="✦" /><span>{message}</span></div>}
           </article>
