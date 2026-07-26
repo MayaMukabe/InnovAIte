@@ -154,12 +154,107 @@ function Library() {
   )
 }
 
-function Boss({ startQuest }: { startQuest: () => void }) {
-  return (
+const bossQuestions = [
+  { prompt: 'Solve: 5x + 10 = 35', choices: ['x = 3', 'x = 5', 'x = 7', 'x = 9'], correct: 1 },
+  { prompt: 'Which number makes 4(y − 2) = 24 true?', choices: ['4', '6', '8', '10'], correct: 2 },
+  { prompt: 'A pattern grows 3, 7, 11, 15… What comes next?', choices: ['17', '18', '19', '20'], correct: 2 },
+  { prompt: 'What is 25% of 80?', choices: ['15', '20', '25', '30'], correct: 1 },
+  { prompt: 'Solve: 3(z + 4) = 27', choices: ['z = 3', 'z = 5', 'z = 7', 'z = 9'], correct: 1 },
+]
+
+function GlitchBoss({ onReward }: { onReward: (xp: number) => void }) {
+  const [status, setStatus] = useState<'intro' | 'playing' | 'won' | 'lost'>('intro')
+  const [time, setTime] = useState(90)
+  const [hp, setHp] = useState(100)
+  const [question, setQuestion] = useState(0)
+  const [answer, setAnswer] = useState<number | null>(null)
+  const [feedback, setFeedback] = useState('')
+  const [combo, setCombo] = useState(0)
+
+  useEffect(() => {
+    if (status !== 'playing') return
+    const timer = window.setInterval(() => {
+      setTime((current) => {
+        if (current <= 1) {
+          window.clearInterval(timer)
+          setStatus('lost')
+          return 0
+        }
+        return current - 1
+      })
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [status])
+
+  const start = () => {
+    setTime(90); setHp(100); setQuestion(0); setAnswer(null); setFeedback(''); setCombo(0); setStatus('playing')
+  }
+  const attack = () => {
+    if (answer === null) return
+    if (answer === bossQuestions[question].correct) {
+      const damage = combo >= 2 ? 25 : 20
+      const nextHp = Math.max(0, hp - damage)
+      setHp(nextHp)
+      setCombo((value) => value + 1)
+      setFeedback(`Direct hit! −${damage} boss HP${damage > 20 ? ' · Combo bonus!' : ''}`)
+      if (nextHp === 0 || question === bossQuestions.length - 1) {
+        setStatus('won')
+        onReward(150 + time)
+      } else {
+        window.setTimeout(() => {
+          setQuestion((value) => value + 1)
+          setAnswer(null)
+          setFeedback('')
+        }, 650)
+      }
+    } else {
+      setTime((current) => Math.max(0, current - 7))
+      setCombo(0)
+      setFeedback('Attack blocked! Review your strategy. −7 seconds')
+    }
+  }
+
+  if (status === 'intro') return (
     <main className="page">
       <section className="boss-landing">
-        <div><span className="eyebrow coral">FINAL ATTACK MODE</span><h1>Prove it’s really yours.</h1><p>No hints. No answer reveals. Complete one fresh problem to confirm that your strategy transfers.</p><div className="boss-rules"><span>✓ New problem</span><span>✓ Student-led solution</span><span>✓ Encouraging feedback</span></div><button className="button button-coral" onClick={startQuest}>ENTER BOSS BATTLE <Icon name="ϟ" /></button></div>
-        <img src={art.glitch} alt="Friendly robot Glitch battle character" />
+        <div><span className="eyebrow coral">GLITCH BOSS · LIVE BATTLE</span><h1>Defeat the corruption.</h1><p>Solve five rapid-fire reasoning problems before the clock reaches zero. Every correct answer damages the boss. Consecutive hits charge a combo attack.</p><div className="boss-rules"><span>⏱ 90 seconds</span><span>⚔ Correct = damage</span><span>⌁ Mistake = −7 seconds</span></div><button className="button button-coral" onClick={start}>START BOSS BATTLE <Icon name="ϟ" /></button></div>
+        <img src={art.glitch} alt="Glitch Boss battle character" />
+      </section>
+    </main>
+  )
+
+  if (status === 'won' || status === 'lost') return (
+    <main className="page boss-result-page">
+      <section className={`boss-result ${status}`}>
+        <span className="eyebrow">{status === 'won' ? 'BOSS DEFEATED' : 'TIME EXPIRED'}</span><h1>{status === 'won' ? 'SYSTEM RESTORED!' : 'THE GLITCH ESCAPED'}</h1>
+        <img src={art.glitch} alt="" /><h2>{status === 'won' ? `Victory with ${time}s remaining` : 'Persistence builds power'}</h2>
+        <p>{status === 'won' ? `You earned ${150 + time} XP for speed and accuracy.` : 'No progress was lost. Review your strategies and return stronger.'}</p>
+        <button className="button button-gold" onClick={start}>{status === 'won' ? 'BATTLE AGAIN' : 'RETRY BATTLE'} →</button>
+      </section>
+    </main>
+  )
+
+  const current = bossQuestions[question]
+  return (
+    <main className="boss-arena">
+      <section className="arena-top">
+        <div className="boss-name"><span>⚠</span><div><small>LEVEL 5 BOSS</small><strong>THE GLITCH</strong></div></div>
+        <div className={`battle-timer ${time <= 20 ? 'danger' : ''}`}><small>TIME LEFT</small><strong>{Math.floor(time / 60)}:{String(time % 60).padStart(2, '0')}</strong></div>
+        <div className="arena-score"><small>COMBO</small><strong>×{combo}</strong></div>
+      </section>
+      <section className="arena-scene">
+        <div className="boss-combatant">
+          <div className="boss-hp"><span>BOSS HP <strong>{hp}/100</strong></span><i><b style={{ width: `${hp}%` }} /></i></div>
+          <img className={feedback.startsWith('Direct') ? 'damaged' : ''} src={art.glitch} alt="The Glitch Boss" />
+          <span className="boss-taunt">{feedback || 'Solve fast, hero. Your clock is already running!'}</span>
+        </div>
+        <article className="attack-console">
+          <div className="console-label"><span>ATTACK {question + 1} / {bossQuestions.length}</span><strong>+20 DAMAGE</strong></div>
+          <h1>{current.prompt}</h1>
+          <div className="attack-answers">{current.choices.map((choice, index) => <button className={answer === index ? 'selected' : ''} onClick={() => setAnswer(index)} key={choice}><span>{String.fromCharCode(65 + index)}</span>{choice}</button>)}</div>
+          <button className="button button-coral attack-button" disabled={answer === null} onClick={attack}>LAUNCH ATTACK <Icon name="ϟ" /></button>
+          <p><Icon name="◉" /> No hints in Boss Battles. Trust the mind you built.</p>
+        </article>
       </section>
     </main>
   )
@@ -261,7 +356,7 @@ function App() {
       <Header xp={xp} />
       {screen === 'academy' && <Academy city={city} startQuest={startQuest} />}
       {screen === 'library' && <Library />}
-      {screen === 'boss' && <Boss startQuest={() => undefined} />}
+      {screen === 'boss' && <GlitchBoss onReward={(reward) => setXp((current) => current + reward)} />}
       {screen === 'quests' && <BrainQuest districtId={activeDistrict} onComplete={completeQuest} goHome={() => setScreen('academy')} />}
       <Nav screen={screen} onChange={setScreen} />
     </div>
