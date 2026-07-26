@@ -38,10 +38,10 @@ const districts: Array<{ id: DistrictId; icon: string; name: string; building: s
   { id: 'curiosity', icon: 'curiosity', name: 'Curiosity District', building: 'Research Center', skill: 'Questions & discovery', color: 'purple', image: '/images/districts/research-center.webp' },
 ]
 
-const comicBooks: Array<{ id: ComicId; title: string; subtitle: string; image: string; costs: number[]; chapters: string[] }> = [
-  { id: 'gearbound', title: 'Gearbound', subtitle: 'Inventors of the Open Sky', image: '/images/comics/gearbound.webp', costs: [120, 220, 340], chapters: ['The impossible engine wakes above Logic City.', 'A broken compass forces the crew to reason from clues.', 'The inventors combine their designs to cross the storm wall.'] },
-  { id: 'skyLibrary', title: 'The Sky Library', subtitle: 'Pages Beyond the Clouds', image: '/images/comics/sky-library.webp', costs: [140, 240, 360], chapters: ['A living book chooses Maya for a hidden reading quest.', 'Missing pages rearrange the tower—and every detail matters.', 'Maya must explain the final riddle to open the sunrise archive.'] },
-  { id: 'starScouts', title: 'Star Scouts', subtitle: 'The Curiosity Signal', image: '/images/comics/star-scouts.webp', costs: [160, 260, 380], chapters: ['Three research scouts detect a flower-shaped signal in space.', 'Their first hypothesis fails, revealing a better question.', 'The team follows the evidence to a moon that grows starlight.'] },
+const comicBooks: Array<{ id: ComicId; title: string; subtitle: string; theme: string; mark: string; costs: number[]; chapters: string[] }> = [
+  { id: 'gearbound', title: 'Gearbound', subtitle: 'Inventors of the Open Sky', theme: 'cobalt', mark: 'G', costs: [120, 220, 340], chapters: ['The impossible engine wakes above Logic City.', 'A broken compass forces the crew to reason from clues.', 'The inventors combine their designs to cross the storm wall.'] },
+  { id: 'skyLibrary', title: 'The Sky Library', subtitle: 'Pages Beyond the Clouds', theme: 'sunrise', mark: 'S', costs: [140, 240, 360], chapters: ['A living book chooses Maya for a hidden reading quest.', 'Missing pages rearrange the tower—and every detail matters.', 'Maya must explain the final riddle to open the sunrise archive.'] },
+  { id: 'starScouts', title: 'Star Scouts', subtitle: 'The Curiosity Signal', theme: 'violet', mark: '★', costs: [160, 260, 380], chapters: ['Three research scouts detect a flower-shaped signal in space.', 'Their first hypothesis fails, revealing a better question.', 'The team follows the evidence to a moon that grows starlight.'] },
 ]
 
 const art = {
@@ -245,12 +245,12 @@ function ComicShelf({ xp, progress, onUnlock }: { xp: number; progress: ComicPro
         const unlocked = progress[comic.id]
         const complete = unlocked >= comic.chapters.length
         return <article className="comic-book" key={comic.id}>
-          <div className="comic-cover"><img src={comic.image} alt={`${comic.title} comic cover`} /><span>{comic.subtitle}</span><h3>{comic.title}</h3><i>{unlocked}/{comic.chapters.length} CHAPTERS</i></div>
+          <div className={`comic-cover ${comic.theme}`} aria-label={`${comic.title} graphic cover`}><b aria-hidden="true">{comic.mark}</b><span>{comic.subtitle}</span><h3>{comic.title}</h3><i>{unlocked}/{comic.chapters.length} CHAPTERS</i></div>
           <div className="chapter-dots">{comic.chapters.map((_, index) => <button disabled={index >= unlocked} className={index < unlocked ? 'open' : ''} onClick={() => setReading({ comic: comic.id, chapter: index })} key={index}>{index < unlocked ? <BookOpen /> : '🔒'}<span>Ch. {index + 1}</span></button>)}</div>
           {complete ? <button className="button button-green" onClick={() => setReading({ comic: comic.id, chapter: unlocked - 1 })}>READ COLLECTION</button> : <button className="button comic-unlock" onClick={() => unlock(comic)}>UNLOCK CHAPTER {unlocked + 1} · {comic.costs[unlocked]} XP</button>}
         </article>
       })}</div>
-      {reading && openComic && <div className="reader-backdrop" role="dialog" aria-modal="true" aria-label={`${openComic.title} chapter ${reading.chapter + 1}`} onClick={() => setReading(null)}><article className="comic-reader" onClick={(event) => event.stopPropagation()}><button className="reader-close" onClick={() => setReading(null)}>×</button><img src={openComic.image} alt="" /><div><span className="eyebrow">{openComic.title.toUpperCase()} · CHAPTER {reading.chapter + 1}</span><h2>{openComic.chapters[reading.chapter]}</h2><p>The city shimmered beneath the clouds as the young heroes faced a problem no machine could solve for them. They gathered the clues, shared their ideas, and tested the first plan.</p><p>When that plan failed, they did not ask for an instant answer. They looked again, noticed what had changed, and built a stronger explanation together.</p><blockquote>“A wrong attempt isn’t wasted,” Spark said. “It gives your next idea somewhere to begin.”</blockquote><button className="button button-gold" onClick={() => setReading(null)}>BOOKMARK & CLOSE</button></div></article></div>}
+      {reading && openComic && <div className="reader-backdrop" role="dialog" aria-modal="true" aria-label={`${openComic.title} chapter ${reading.chapter + 1}`} onClick={() => setReading(null)}><article className="comic-reader" onClick={(event) => event.stopPropagation()}><button className="reader-close" onClick={() => setReading(null)}>×</button><aside className={`reader-title-card ${openComic.theme}`}><b>{openComic.mark}</b><strong>{openComic.title}</strong><span>{openComic.subtitle}</span></aside><div><span className="eyebrow">{openComic.title.toUpperCase()} · CHAPTER {reading.chapter + 1}</span><h2>{openComic.chapters[reading.chapter]}</h2><p>The city shimmered beneath the clouds as the young heroes faced a problem no machine could solve for them. They gathered the clues, shared their ideas, and tested the first plan.</p><p>When that plan failed, they did not ask for an instant answer. They looked again, noticed what had changed, and built a stronger explanation together.</p><blockquote>“A wrong attempt isn’t wasted,” Spark said. “It gives your next idea somewhere to begin.”</blockquote><button className="button button-gold" onClick={() => setReading(null)}>BOOKMARK & CLOSE</button></div></article></div>}
     </section>
   )
 }
@@ -264,21 +264,6 @@ function Library({ xp, comics, onUnlock, onMaterialReward }: { xp: number; comic
       </section>
       <ComicShelf xp={xp} progress={comics} onUnlock={onUnlock} />
       <MaterialStudio onReward={onMaterialReward} />
-      <section className="section">
-        <div className="section-heading"><div><span className="eyebrow">PICK UP WHERE YOU LEFT OFF</span><h2>Recent study</h2></div></div>
-        <div className="recent-grid">
-          <article className="recent-card"><div className="ring">75%</div><div><h3>Algebra Alchemy</h3><p>Chapter 4 · Linear Potions</p><button className="small-button">Resume →</button></div></article>
-          <article className="recent-card"><div className="ring ring-blue">30%</div><div><h3>Logic Spells</h3><p>Level 1 · Boolean Runes</p><button className="small-button">Resume →</button></div></article>
-        </div>
-      </section>
-      <section className="section">
-        <div className="section-heading"><div><span className="eyebrow">DISCOVER</span><h2>Trending skill scrolls</h2></div><button className="text-button">Browse all →</button></div>
-        <div className="scroll-grid">
-          <article className="scroll-card featured"><img src={art.geometry} alt="" /><div><span className="status-chip">PREMIUM QUEST</span><h3>The Geometry of Gliding</h3><p>Master flight paths by calculating angles and velocity.</p><button className="button button-green">UNLOCK SCROLL</button></div></article>
-          <article className="scroll-card"><img src={art.stories} alt="" /><div><span className="eyebrow">LANGUAGE ARTS · +450 XP</span><h3>Story Weaving</h3><p>Craft stronger narratives through choice and reflection.</p><button className="text-button">Explore →</button></div></article>
-          <article className="scroll-card"><img src={art.chemistry} alt="" /><div><span className="eyebrow">SCIENCE · +600 XP</span><h3>Elemental Chemistry</h3><p>Learn the reaction rules of the physical world.</p><button className="text-button">Explore →</button></div></article>
-        </div>
-      </section>
     </main>
   )
 }
