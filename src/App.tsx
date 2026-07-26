@@ -32,7 +32,7 @@ const art = {
   avatar:
     'https://lh3.googleusercontent.com/aida-public/AB6AXuCwG-RIeyi8QoXefukniUwbU286D4prv_8bKSHDC98ta9_UDZd0DvFS32_eUUEroWRwEAgXxzPN6JtFpQ75-Egf_xUWQQH0jWozxI0VgS6eNDASG1zPIQXQbRVwWZXlSZ1ohruTuTi-EBa3A8eLlcNWN4MWg1v5_N-HOKhEb5xmA7GIz9KQkHh1RP2QgQer72AKTW55ubTowFg-ECHfMc4K4g0bn9p3U5xTDX9Roj4auIIe4tKLKWuTBTrvdV6MfQ4JP8_AOiI_Hi0',
   glitch:
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuD2oArwOnRv-de8zXddesTy1mLaXM3MjnfNfPUTcf_TZs_La4GFBY_eRlYEjavPrBBpWNJHszTX0313Fj9otZioEFIORnZJpLELLT2sHr90zP5b6GwXwd1nPef2TCXIcKr61R0xyJvhlXIvz1S4f0zr4Kbv0CnBf018PKVqXJVMAbi9AWDLmfeqaj_GuJjTo-gcDvzSzAokyQ1ak2KiDWCsfGatYUa1FJ-xTMYKbKIrjajhfAXMj70aPFdYG1P6Q4XwzY_0dXajilw',
+    '/images/characters/glitch-boss.webp',
   geometry:
     'https://lh3.googleusercontent.com/aida-public/AB6AXuB7JpmuiTVFeYYGSdjKReCeqd7R6m7Uim6tI7X3mdgvWN0FhNzu4KRfF9qTbOZxoWGbMmrfWR71LYPmFxp4iiFZIMetko0t5ePYATdcpsGMttSEHWwSB9CwCu9npi6W9CkWqu_8HStxu_ieHBzw8B0Hf_xFXmdbpaoei5EPa41eplh5nPeD7VKsZVy1i80QBTK5NV7vIcZQzYdkhJ0CDwK4fcbqcBD90cMZEozthwt05Na0PcnWXdV4b5zMu2KSKdZSWWDCHNlvhRE',
   stories:
@@ -235,13 +235,14 @@ const bossQuestions = [
 ]
 
 function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: number) => void }) {
-  const [status, setStatus] = useState<'intro' | 'playing' | 'won' | 'lost'>('intro')
+  const [status, setStatus] = useState<'intro' | 'playing' | 'finishing' | 'won' | 'lost'>('intro')
   const [time, setTime] = useState(90)
   const [hp, setHp] = useState(100)
   const [question, setQuestion] = useState(0)
   const [answer, setAnswer] = useState<number | null>(null)
   const [feedback, setFeedback] = useState('')
   const [combo, setCombo] = useState(0)
+  const [lastDamage, setLastDamage] = useState(0)
 
   useEffect(() => {
     if (status !== 'playing') return
@@ -259,7 +260,7 @@ function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: num
   }, [status])
 
   const start = () => {
-    setTime(90); setHp(100); setQuestion(0); setAnswer(null); setFeedback(''); setCombo(0); setStatus('playing')
+    setTime(90); setHp(100); setQuestion(0); setAnswer(null); setFeedback(''); setCombo(0); setLastDamage(0); setStatus('playing')
   }
   const attack = () => {
     if (answer === null) return
@@ -268,15 +269,18 @@ function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: num
       const nextHp = Math.max(0, hp - damage)
       setHp(nextHp)
       setCombo((value) => value + 1)
+      setLastDamage(damage)
       setFeedback(`Direct hit! −${damage} boss HP${damage > 20 ? ' · Combo bonus!' : ''}`)
       if (nextHp === 0 || question === bossQuestions.length - 1) {
-        setStatus('won')
+        setStatus('finishing')
         onReward(bossReward(time), time)
+        window.setTimeout(() => setStatus('won'), 1600)
       } else {
         window.setTimeout(() => {
           setQuestion((value) => value + 1)
           setAnswer(null)
           setFeedback('')
+          setLastDamage(0)
         }, 650)
       }
     } else {
@@ -299,7 +303,8 @@ function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: num
     <main className="page boss-result-page">
       <section className={`boss-result ${status}`}>
         <span className="eyebrow">{status === 'won' ? 'BOSS DEFEATED' : 'TIME EXPIRED'}</span><h1>{status === 'won' ? 'SYSTEM RESTORED!' : 'THE GLITCH ESCAPED'}</h1>
-        <img src={art.glitch} alt="" /><h2>{status === 'won' ? `Victory with ${time}s remaining` : 'Persistence builds power'}</h2>
+        {status === 'won' && <div className="victory-confetti" aria-hidden="true">{Array.from({ length: 18 }, (_, index) => <i key={index} />)}</div>}
+        <img src={status === 'won' ? '/images/characters/glitch-defeated.webp' : art.glitch} alt="" /><h2>{status === 'won' ? `Victory with ${time}s remaining` : 'Persistence builds power'}</h2>
         <p>{status === 'won' ? `You earned ${bossReward(time)} XP for speed and accuracy.` : 'No progress was lost. Review your strategies and return stronger.'}</p>
         <button className="button button-gold" onClick={start}>{status === 'won' ? 'BATTLE AGAIN' : 'RETRY BATTLE'} →</button>
       </section>
@@ -314,10 +319,12 @@ function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: num
         <div className={`battle-timer ${time <= 20 ? 'danger' : ''}`}><small>TIME LEFT</small><strong>{Math.floor(time / 60)}:{String(time % 60).padStart(2, '0')}</strong></div>
         <div className="arena-score"><small>COMBO</small><strong>×{combo}</strong></div>
       </section>
-      <section className="arena-scene">
+      <section className={`arena-scene ${status === 'finishing' ? 'final-blow' : ''} ${feedback.startsWith('Attack') ? 'attack-blocked' : ''}`}>
         <div className="boss-combatant">
           <div className="boss-hp"><span>BOSS HP <strong>{hp}/100</strong></span><i><b style={{ width: `${hp}%` }} /></i></div>
           <img className={feedback.startsWith('Direct') ? 'damaged' : ''} src={art.glitch} alt="The Glitch Boss" />
+          {lastDamage > 0 && <span className="damage-number">−{lastDamage}{lastDamage > 20 && <small> CRITICAL!</small>}</span>}
+          {feedback.startsWith('Direct') && <div className="hit-particles" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <i key={index} />)}</div>}
           <span className="boss-taunt">{feedback || 'Solve fast, hero. Your clock is already running!'}</span>
         </div>
         <article className="attack-console">
@@ -327,6 +334,7 @@ function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: num
           <button className="button button-coral attack-button" disabled={answer === null} onClick={attack}>LAUNCH ATTACK <Icon name="ϟ" /></button>
           <p><Icon name="◉" /> No hints in Boss Battles. Trust the mind you built.</p>
         </article>
+        {status === 'finishing' && <div className="finishing-overlay"><Icon name="zap" /><strong>FINAL STRIKE!</strong><span>Corruption cleared</span></div>}
       </section>
     </main>
   )
