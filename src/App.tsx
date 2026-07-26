@@ -6,6 +6,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { bossDamage, bossReward, canAfford, nextComicChapter, nextDistrictLevel, questReward } from './gameLogic'
+import MaterialStudio from './MaterialStudio'
 
 type Screen = 'academy' | 'quests' | 'boss' | 'library'
 type DistrictId = 'memory' | 'logic' | 'reading' | 'creativity' | 'curiosity'
@@ -236,7 +237,7 @@ function ComicShelf({ xp, progress, onUnlock }: { xp: number; progress: ComicPro
   )
 }
 
-function Library({ xp, comics, onUnlock }: { xp: number; comics: ComicProgress; onUnlock: (comic: ComicId, cost: number) => boolean }) {
+function Library({ xp, comics, onUnlock, onMaterialReward }: { xp: number; comics: ComicProgress; onUnlock: (comic: ComicId, cost: number) => boolean; onMaterialReward: (xp: number) => void }) {
   return (
     <main className="page library-page">
       <section className="page-intro">
@@ -244,12 +245,13 @@ function Library({ xp, comics, onUnlock }: { xp: number; comics: ComicProgress; 
         <label className="search"><Icon name="⌕" /><input aria-label="Search library" placeholder="Search techniques, topics, or subjects" /><span>⌘ K</span></label>
       </section>
       <ComicShelf xp={xp} progress={comics} onUnlock={onUnlock} />
+      <MaterialStudio onReward={onMaterialReward} />
       <section className="section">
         <div className="section-heading"><div><span className="eyebrow">PICK UP WHERE YOU LEFT OFF</span><h2>Recent study</h2></div></div>
         <div className="recent-grid">
           <article className="recent-card"><div className="ring">75%</div><div><h3>Algebra Alchemy</h3><p>Chapter 4 · Linear Potions</p><button className="small-button">Resume →</button></div></article>
           <article className="recent-card"><div className="ring ring-blue">30%</div><div><h3>Logic Spells</h3><p>Level 1 · Boolean Runes</p><button className="small-button">Resume →</button></div></article>
-          <article className="upload-card"><Icon name="⇧" /><div><h3>Add your study materials</h3><p>Turn teacher-approved notes into private practice.</p></div><button className="button button-blue">UPLOAD</button></article>
+          <article className="upload-card"><Icon name="upload" /><div><h3>Add your study materials</h3><p>Turn teacher-approved notes into private practice.</p></div><button className="button button-blue" onClick={() => document.querySelector('.material-studio')?.scrollIntoView({ behavior: 'smooth' })}>OPEN STUDIO</button></article>
         </div>
       </section>
       <section className="section">
@@ -510,7 +512,7 @@ function App() {
     <div className="app">
       <Header xp={xp} />
       {screen === 'academy' && <Academy city={city} stats={stats} xp={xp} startQuest={startQuest} />}
-      {screen === 'library' && <Library xp={xp} comics={comics} onUnlock={unlockComic} />}
+      {screen === 'library' && <Library xp={xp} comics={comics} onUnlock={unlockComic} onMaterialReward={(reward) => setXp((current) => current + reward)} />}
       {screen === 'boss' && <GlitchBoss onReward={completeBoss} />}
       {screen === 'quests' && <BrainQuest districtId={activeDistrict} onComplete={completeQuest} goHome={() => setScreen('academy')} />}
       <Nav screen={screen} onChange={setScreen} />
