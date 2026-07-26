@@ -1,6 +1,9 @@
 node_modules
 dist
+server-dist
 .DS_Store
 *.local
 coverage
 *.tsbuildinfo
+server/data/*.json
+!server/data/.gitkeep
