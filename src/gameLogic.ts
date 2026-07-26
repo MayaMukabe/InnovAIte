@@ -13,3 +13,11 @@ export function bossDamage(combo: number): number {
 export function bossReward(secondsRemaining: number): number {
   return 150 + Math.max(0, secondsRemaining)
 }
+
+export function canAfford(xp: number, cost: number): boolean {
+  return xp >= cost
+}
+
+export function nextComicChapter(unlocked: number, totalChapters = 3): number {
+  return Math.min(unlocked + 1, totalChapters)
+}

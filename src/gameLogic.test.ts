@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bossDamage, bossReward, nextDistrictLevel, questReward } from './gameLogic'
+import { bossDamage, bossReward, canAfford, nextComicChapter, nextDistrictLevel, questReward } from './gameLogic'
 
 describe('Brain City progression', () => {
   it('upgrades a district by one level', () => {
@@ -13,6 +13,18 @@ describe('Brain City progression', () => {
   it('rewards a first-try solution without removing retry rewards', () => {
     expect(questReward(1)).toBe(50)
     expect(questReward(3)).toBe(35)
+  })
+})
+
+describe('XP comic economy', () => {
+  it('unlocks only when the learner has enough XP', () => {
+    expect(canAfford(220, 220)).toBe(true)
+    expect(canAfford(219, 220)).toBe(false)
+  })
+
+  it('never unlocks beyond the final chapter', () => {
+    expect(nextComicChapter(2)).toBe(3)
+    expect(nextComicChapter(3)).toBe(3)
   })
 })
 

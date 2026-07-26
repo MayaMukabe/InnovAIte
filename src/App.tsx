@@ -5,7 +5,7 @@ import {
   Sparkles, Swords, Target, Telescope, Upload, UserRound, Zap,
   type LucideIcon,
 } from 'lucide-react'
-import { bossDamage, bossReward, nextDistrictLevel, questReward } from './gameLogic'
+import { bossDamage, bossReward, canAfford, nextComicChapter, nextDistrictLevel, questReward } from './gameLogic'
 
 type Screen = 'academy' | 'quests' | 'boss' | 'library'
 type DistrictId = 'memory' | 'logic' | 'reading' | 'creativity' | 'curiosity'
@@ -17,6 +17,8 @@ type LearningStats = {
   bossWins: number
   bestBossTime: number
 }
+type ComicId = 'gearbound' | 'skyLibrary' | 'starScouts'
+type ComicProgress = Record<ComicId, number>
 
 const districts: Array<{ id: DistrictId; icon: string; name: string; building: string; skill: string; color: string; image: string }> = [
   { id: 'memory', icon: 'memory', name: 'Memory District', building: 'Grand Library', skill: 'Recall & retention', color: 'green', image: '/images/districts/grand-library.webp' },
@@ -24,6 +26,12 @@ const districts: Array<{ id: DistrictId; icon: string; name: string; building: s
   { id: 'reading', icon: 'reading', name: 'Reading District', building: 'Knowledge Tower', skill: 'Comprehension', color: 'yellow', image: '/images/districts/knowledge-tower.webp' },
   { id: 'creativity', icon: 'creativity', name: 'Creativity District', building: 'Art Studio', skill: 'Ideas & expression', color: 'coral', image: '/images/districts/art-studio.webp' },
   { id: 'curiosity', icon: 'curiosity', name: 'Curiosity District', building: 'Research Center', skill: 'Questions & discovery', color: 'purple', image: '/images/districts/research-center.webp' },
+]
+
+const comicBooks: Array<{ id: ComicId; title: string; subtitle: string; image: string; costs: number[]; chapters: string[] }> = [
+  { id: 'gearbound', title: 'Gearbound', subtitle: 'Inventors of the Open Sky', image: '/images/comics/gearbound.webp', costs: [120, 220, 340], chapters: ['The impossible engine wakes above Logic City.', 'A broken compass forces the crew to reason from clues.', 'The inventors combine their designs to cross the storm wall.'] },
+  { id: 'skyLibrary', title: 'The Sky Library', subtitle: 'Pages Beyond the Clouds', image: '/images/comics/sky-library.webp', costs: [140, 240, 360], chapters: ['A living book chooses Maya for a hidden reading quest.', 'Missing pages rearrange the tower—and every detail matters.', 'Maya must explain the final riddle to open the sunrise archive.'] },
+  { id: 'starScouts', title: 'Star Scouts', subtitle: 'The Curiosity Signal', image: '/images/comics/star-scouts.webp', costs: [160, 260, 380], chapters: ['Three research scouts detect a flower-shaped signal in space.', 'Their first hypothesis fails, revealing a better question.', 'The team follows the evidence to a moon that grows starlight.'] },
 ]
 
 const art = {
@@ -199,13 +207,43 @@ function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: L
   )
 }
 
-function Library() {
+function ComicShelf({ xp, progress, onUnlock }: { xp: number; progress: ComicProgress; onUnlock: (comic: ComicId, cost: number) => boolean }) {
+  const [reading, setReading] = useState<{ comic: ComicId; chapter: number } | null>(null)
+  const [shopMessage, setShopMessage] = useState('')
+  const openComic = reading ? comicBooks.find((comic) => comic.id === reading.comic)! : null
+  const unlock = (comic: typeof comicBooks[number]) => {
+    const nextChapter = progress[comic.id]
+    const cost = comic.costs[nextChapter]
+    if (onUnlock(comic.id, cost)) setShopMessage(`${comic.title} Chapter ${nextChapter + 1} unlocked!`)
+    else setShopMessage(`You need ${cost - xp} more XP. Complete quests or defeat the Boss.`)
+  }
+
+  return (
+    <section className="section comic-section">
+      <div className="comic-banner"><div><span className="eyebrow">XP REWARD SHOP</span><h2>Adventure Comics</h2><p>Your learning powers the next chapter. Spend XP you earn—never real money.</p></div><div className="comic-wallet"><Sparkles /><span>YOUR WALLET</span><strong>{xp} XP</strong></div></div>
+      {shopMessage && <div className="shop-message" role="status"><Icon name="sparkles" />{shopMessage}</div>}
+      <div className="comic-grid">{comicBooks.map((comic) => {
+        const unlocked = progress[comic.id]
+        const complete = unlocked >= comic.chapters.length
+        return <article className="comic-book" key={comic.id}>
+          <div className="comic-cover"><img src={comic.image} alt={`${comic.title} comic cover`} /><span>{comic.subtitle}</span><h3>{comic.title}</h3><i>{unlocked}/{comic.chapters.length} CHAPTERS</i></div>
+          <div className="chapter-dots">{comic.chapters.map((_, index) => <button disabled={index >= unlocked} className={index < unlocked ? 'open' : ''} onClick={() => setReading({ comic: comic.id, chapter: index })} key={index}>{index < unlocked ? <BookOpen /> : '🔒'}<span>Ch. {index + 1}</span></button>)}</div>
+          {complete ? <button className="button button-green" onClick={() => setReading({ comic: comic.id, chapter: unlocked - 1 })}>READ COLLECTION</button> : <button className="button comic-unlock" onClick={() => unlock(comic)}>UNLOCK CHAPTER {unlocked + 1} · {comic.costs[unlocked]} XP</button>}
+        </article>
+      })}</div>
+      {reading && openComic && <div className="reader-backdrop" role="dialog" aria-modal="true" aria-label={`${openComic.title} chapter ${reading.chapter + 1}`} onClick={() => setReading(null)}><article className="comic-reader" onClick={(event) => event.stopPropagation()}><button className="reader-close" onClick={() => setReading(null)}>×</button><img src={openComic.image} alt="" /><div><span className="eyebrow">{openComic.title.toUpperCase()} · CHAPTER {reading.chapter + 1}</span><h2>{openComic.chapters[reading.chapter]}</h2><p>The city shimmered beneath the clouds as the young heroes faced a problem no machine could solve for them. They gathered the clues, shared their ideas, and tested the first plan.</p><p>When that plan failed, they did not ask for an instant answer. They looked again, noticed what had changed, and built a stronger explanation together.</p><blockquote>“A wrong attempt isn’t wasted,” Spark said. “It gives your next idea somewhere to begin.”</blockquote><button className="button button-gold" onClick={() => setReading(null)}>BOOKMARK & CLOSE</button></div></article></div>}
+    </section>
+  )
+}
+
+function Library({ xp, comics, onUnlock }: { xp: number; comics: ComicProgress; onUnlock: (comic: ComicId, cost: number) => boolean }) {
   return (
     <main className="page library-page">
       <section className="page-intro">
         <span className="eyebrow">TRAINING ARCHIVE</span><h1>Hero Library</h1><p>Practice from trusted materials and explore new skill scrolls.</p>
         <label className="search"><Icon name="⌕" /><input aria-label="Search library" placeholder="Search techniques, topics, or subjects" /><span>⌘ K</span></label>
       </section>
+      <ComicShelf xp={xp} progress={comics} onUnlock={onUnlock} />
       <section className="section">
         <div className="section-heading"><div><span className="eyebrow">PICK UP WHERE YOU LEFT OFF</span><h2>Recent study</h2></div></div>
         <div className="recent-grid">
@@ -427,12 +465,17 @@ function App() {
     const saved = localStorage.getItem('brain-builder-stats')
     return saved ? JSON.parse(saved) as LearningStats : { questsCompleted: 0, firstTryWins: 0, reflectionsWritten: 0, bossWins: 0, bestBossTime: 0 }
   })
+  const [comics, setComics] = useState<ComicProgress>(() => {
+    const saved = localStorage.getItem('brain-builder-comics')
+    return saved ? JSON.parse(saved) as ComicProgress : { gearbound: 0, skyLibrary: 0, starScouts: 0 }
+  })
 
   useEffect(() => {
     localStorage.setItem('brain-builder-city', JSON.stringify(city))
     localStorage.setItem('brain-builder-xp', String(xp))
     localStorage.setItem('brain-builder-stats', JSON.stringify(stats))
-  }, [city, stats, xp])
+    localStorage.setItem('brain-builder-comics', JSON.stringify(comics))
+  }, [city, comics, stats, xp])
 
   const startQuest = (district: DistrictId) => {
     setActiveDistrict(district)
@@ -456,12 +499,18 @@ function App() {
       bestBossTime: Math.max(current.bestBossTime, secondsRemaining),
     }))
   }
+  const unlockComic = (comic: ComicId, cost: number) => {
+    if (!canAfford(xp, cost)) return false
+    setXp((current) => current - cost)
+    setComics((current) => ({ ...current, [comic]: nextComicChapter(current[comic]) }))
+    return true
+  }
 
   return (
     <div className="app">
       <Header xp={xp} />
       {screen === 'academy' && <Academy city={city} stats={stats} xp={xp} startQuest={startQuest} />}
-      {screen === 'library' && <Library />}
+      {screen === 'library' && <Library xp={xp} comics={comics} onUnlock={unlockComic} />}
       {screen === 'boss' && <GlitchBoss onReward={completeBoss} />}
       {screen === 'quests' && <BrainQuest districtId={activeDistrict} onComplete={completeQuest} goHome={() => setScreen('academy')} />}
       <Nav screen={screen} onChange={setScreen} />
