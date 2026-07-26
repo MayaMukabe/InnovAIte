@@ -2,7 +2,7 @@
 
 ## Navigation and progression
 
-`App` switches between Academy, Quests, Boss, and Library. Library opens Material Studio or the XP Comic Shop as separate workflows.
+`App` switches between Academy, Quests, Boss, and Library. Academy contains district training, functional Subject Archives, and Material Studio. Library is the separate XP manga-reward workflow.
 
 Learner progression contains XP, five district levels, activity dates, unlocks, and aggregate learning evidence. React updates immediately, caches it in `localStorage`, and debounces synchronization to the API. If the API is unavailable, play continues locally and the header shows offline mode. Rank, streak, Mindprint, and evidence cards are calculated from saved activity rather than demo numbers.
 
