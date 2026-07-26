@@ -142,6 +142,108 @@ function Boss({ startQuest }: { startQuest: () => void }) {
   )
 }
 
+function Victory({ goHome }: { goHome: () => void }) {
+  return (
+    <main className="page victory-page">
+      <section className="victory-hero">
+        <span className="eyebrow">MISSION ACCOMPLISHED</span>
+        <h1>VICTORY!</h1>
+        <p>You didn’t just find an answer—you repaired the thinking.</p>
+      </section>
+      <section className="victory-grid">
+        <article className="hero-id">
+          <div className="victory-avatar"><img src={art.avatar} alt="Student hero profile" /><span>★</span></div>
+          <span className="status-chip">NEW TITLE UNLOCKED</span><h2>Logic Master</h2><p>“I can explain why, not just what.”</p>
+        </article>
+        <div className="reward-stack">
+          <article className="xp-card"><span>QUEST REWARDS</span><strong>+120 XP</strong><small>★ No-reveal bonus +20</small></article>
+          <article className="transfer-card"><span className="eyebrow">TRANSFER CHECK</span><h2>Independent strategy confirmed</h2><div className="skill-bars"><span>Logic <i style={{ width: '88%' }} /></span><span>Explanation <i style={{ width: '76%' }} /></span><span>Focus <i style={{ width: '82%' }} /></span></div></article>
+        </div>
+      </section>
+      <div className="victory-actions"><button className="button button-gold" onClick={goHome}>BACK TO ACADEMY</button><button className="button button-blue" onClick={() => window.location.reload()}>NEXT QUEST →</button></div>
+    </main>
+  )
+}
+
+function Quest({ goHome }: { goHome: () => void }) {
+  const [phase, setPhase] = useState(0)
+  const [selectedStep, setSelectedStep] = useState<number | null>(null)
+  const [repair, setRepair] = useState('')
+  const [explanation, setExplanation] = useState('')
+  const [hint, setHint] = useState(0)
+  const [message, setMessage] = useState('')
+  const [complete, setComplete] = useState(false)
+
+  const checkStep = () => {
+    if (selectedStep === 2) {
+      setMessage('Critical hit! You found the first place the logic breaks.')
+      setPhase(1)
+    } else {
+      setMessage('Not quite. Find the first step that changes the equation incorrectly.')
+    }
+  }
+  const checkRepair = () => {
+    const normalized = repair.replace(/\s/g, '').toLowerCase()
+    if (['x=3', '3'].includes(normalized)) {
+      setMessage('Repair locked in. Now make your reasoning visible.')
+      setPhase(2)
+    } else {
+      setMessage('Check the operation on both sides. What is 9 divided by 3?')
+    }
+  }
+  const checkExplanation = () => {
+    if (explanation.trim().split(/\s+/).length >= 8) {
+      setMessage('Strong explanation. Final Attack unlocked—no hints this round.')
+      setPhase(3)
+    } else {
+      setMessage('Add a little more: name the incorrect operation and explain your correction.')
+    }
+  }
+  const useHint = () => {
+    setHint((current) => Math.min(current + 1, 2))
+    setMessage(hint === 0 ? 'Hint: compare Step 2 with the equation directly above it.' : 'Stronger hint: dividing 9 by 3 cannot produce 4.')
+  }
+
+  if (complete) return <Victory goHome={goHome} />
+
+  return (
+    <main className="battle-page">
+      <section className="battle-status">
+        <button className="back-button" onClick={goHome}>← Exit quest</button>
+        <div className="phase-track">{['Spot the glitch','Repair it','Explain why','Final attack'].map((label, index) => <span className={phase === index ? 'current' : phase > index ? 'finished' : ''} key={label}><i>{phase > index ? '✓' : index + 1}</i>{label}</span>)}</div>
+        <div className="xp-meter"><span>XP at stake</span><strong>{120 - hint * 10}</strong></div>
+      </section>
+      <div className="battle-layout">
+        <aside className="glitch-panel">
+          <span className="eyebrow">BOSS · THE GLITCH</span><img src={art.glitch} alt="The friendly Glitch robot" />
+          <div className="health"><span>Glitch stability <strong>{phase === 0 ? 84 : phase === 1 ? 62 : phase === 2 ? 34 : 10}%</strong></span><i><b style={{ width: `${phase === 0 ? 84 : phase === 1 ? 62 : phase === 2 ? 34 : 10}%` }} /></i></div>
+          <blockquote>{phase === 0 ? '“I solved it perfectly. Or did I? Find my first mistake!”' : phase === 3 ? '“One fresh problem. Show me the strategy is yours!”' : '“Nice catch! But can you explain the repair?”'}</blockquote>
+        </aside>
+        <section className="challenge-card">
+          <div className="challenge-top"><div><span className="eyebrow">{phase === 3 ? 'FINAL ATTACK · NO HINTS' : `ROUND ${phase + 1} OF 4`}</span><h1>{phase === 0 ? 'Spot the first wrong step' : phase === 1 ? 'Repair the equation' : phase === 2 ? 'Explain your reasoning' : 'Solve independently'}</h1></div><span className="difficulty">ALGEBRA · LEVEL 2</span></div>
+
+          {phase === 0 && <div className="solution-box"><p className="problem">Solve: <strong>3(x + 2) = 15</strong></p>
+            {[['Distribute 3','3x + 6 = 15'],['Subtract 6','3x = 9'],['Divide by 3','x = 4']].map(([label,value], index) => <button className={selectedStep === index ? 'selected' : ''} onClick={() => setSelectedStep(index)} key={label}><span>{index + 1}</span><div><small>{label}</small><strong>{value}</strong></div><i>{selectedStep === index ? '●' : '○'}</i></button>)}
+          </div>}
+          {phase === 1 && <div className="response-box"><p>The Glitch wrote <strong>x = 4</strong> after dividing <strong>3x = 9</strong> by 3.</p><label>What should the corrected final line be?<input value={repair} onChange={(event) => setRepair(event.target.value)} placeholder="x = ?" autoFocus /></label></div>}
+          {phase === 2 && <div className="response-box"><p>Explain what was wrong and why your repair works. Use your own words.</p><label>Your explanation<textarea value={explanation} onChange={(event) => setExplanation(event.target.value)} placeholder="The step was wrong because..." rows={6} autoFocus /></label><small>{explanation.trim() ? explanation.trim().split(/\s+/).length : 0} words · Aim for one clear thought</small></div>}
+          {phase === 3 && <div className="response-box final"><span className="no-hint">TRANSFER CHECK</span><p className="problem">Solve: <strong>4(y − 3) = 20</strong></p><label>Show your final answer<input placeholder="y = ?" /></label><label>One sentence: how did you solve it?<textarea rows={3} placeholder="First I..." /></label></div>}
+
+          {message && <div className={`coach-message ${message.startsWith('Not') || message.startsWith('Check') || message.startsWith('Add') ? 'try-again' : ''}`} role="status"><Icon name="✦" /><span>{message}</span></div>}
+          <div className="challenge-actions">
+            {phase < 3 && <button className="hint-button" onClick={useHint} disabled={hint >= 2}><Icon name="💡" />{hint >= 2 ? 'Hints used' : `Ask for hint (−${hint ? 10 : 5} XP)`}</button>}
+            {phase === 0 && <button className="button button-blue" disabled={selectedStep === null} onClick={checkStep}>LOCK IN STEP →</button>}
+            {phase === 1 && <button className="button button-blue" disabled={!repair} onClick={checkRepair}>TEST REPAIR →</button>}
+            {phase === 2 && <button className="button button-blue" disabled={!explanation} onClick={checkExplanation}>SUBMIT EXPLANATION →</button>}
+            {phase === 3 && <button className="button button-coral" onClick={() => setComplete(true)}>FINAL ATTACK <Icon name="ϟ" /></button>}
+          </div>
+          <p className="ownership-note"><Icon name="◉" /> You make every decision. AI coaches the process; the approved answer bank checks the math.</p>
+        </section>
+      </div>
+    </main>
+  )
+}
+
 function App() {
   const [screen, setScreen] = useState<Screen>('academy')
   return (
@@ -150,7 +252,7 @@ function App() {
       {screen === 'academy' && <Academy startQuest={() => setScreen('quests')} />}
       {screen === 'library' && <Library />}
       {screen === 'boss' && <Boss startQuest={() => setScreen('quests')} />}
-      {screen === 'quests' && <Academy startQuest={() => undefined} />}
+      {screen === 'quests' && <Quest goHome={() => setScreen('academy')} />}
       <Nav screen={screen} onChange={setScreen} />
     </div>
   )
