@@ -27,6 +27,7 @@ Open the local URL printed by Vite.
 ```bash
 npm run dev      # Start the development server
 npm run lint     # Run static analysis
+npm run test     # Run automated game-rule tests
 npm run build    # Type-check and create a production build
 npm run preview  # Preview the production build locally
 ```

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { bossDamage, bossReward, nextDistrictLevel, questReward } from './gameLogic'
 
 type Screen = 'academy' | 'quests' | 'boss' | 'library'
 type DistrictId = 'memory' | 'logic' | 'reading' | 'creativity' | 'curiosity'
@@ -192,14 +193,14 @@ function GlitchBoss({ onReward }: { onReward: (xp: number) => void }) {
   const attack = () => {
     if (answer === null) return
     if (answer === bossQuestions[question].correct) {
-      const damage = combo >= 2 ? 25 : 20
+      const damage = bossDamage(combo)
       const nextHp = Math.max(0, hp - damage)
       setHp(nextHp)
       setCombo((value) => value + 1)
       setFeedback(`Direct hit! −${damage} boss HP${damage > 20 ? ' · Combo bonus!' : ''}`)
       if (nextHp === 0 || question === bossQuestions.length - 1) {
         setStatus('won')
-        onReward(150 + time)
+        onReward(bossReward(time))
       } else {
         window.setTimeout(() => {
           setQuestion((value) => value + 1)
@@ -228,7 +229,7 @@ function GlitchBoss({ onReward }: { onReward: (xp: number) => void }) {
       <section className={`boss-result ${status}`}>
         <span className="eyebrow">{status === 'won' ? 'BOSS DEFEATED' : 'TIME EXPIRED'}</span><h1>{status === 'won' ? 'SYSTEM RESTORED!' : 'THE GLITCH ESCAPED'}</h1>
         <img src={art.glitch} alt="" /><h2>{status === 'won' ? `Victory with ${time}s remaining` : 'Persistence builds power'}</h2>
-        <p>{status === 'won' ? `You earned ${150 + time} XP for speed and accuracy.` : 'No progress was lost. Review your strategies and return stronger.'}</p>
+        <p>{status === 'won' ? `You earned ${bossReward(time)} XP for speed and accuracy.` : 'No progress was lost. Review your strategies and return stronger.'}</p>
         <button className="button button-gold" onClick={start}>{status === 'won' ? 'BATTLE AGAIN' : 'RETRY BATTLE'} →</button>
       </section>
     </main>
@@ -293,7 +294,7 @@ function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId
     }
     setStage('grown')
     setMessage('')
-    onComplete(districtId, attempts <= 1 ? 50 : 35)
+    onComplete(districtId, questReward(attempts))
   }
 
   return (
@@ -347,7 +348,7 @@ function App() {
     setScreen('quests')
   }
   const completeQuest = (district: DistrictId, reward: number) => {
-    setCity((current) => ({ ...current, [district]: Math.min(current[district] + 1, 5) }))
+    setCity((current) => ({ ...current, [district]: nextDistrictLevel(current[district]) }))
     setXp((current) => current + reward)
   }
 
