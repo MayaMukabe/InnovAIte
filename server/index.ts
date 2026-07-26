@@ -1,7 +1,10 @@
 import express from 'express'
+import multer from 'multer'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { PDFParse } from 'pdf-parse'
 import { z } from 'zod'
+import { buildStudySet, safeStudySet, type MaterialStudySet } from './materials.js'
 import { districtQuestions } from './questions.js'
 import { readDatabase, updateDatabase } from './store.js'
 
@@ -16,6 +19,16 @@ const profileSchema = z.object({
 
 app.disable('x-powered-by')
 app.use(express.json({ limit: '100kb' }))
+
+const materialUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  fileFilter: (_request, file, callback) => {
+    const accepted = new Set(['text/plain', 'text/markdown', 'application/pdf'])
+    if (accepted.has(file.mimetype)) callback(null, true)
+    else callback(new Error('Use a TXT, Markdown, or PDF file.'))
+  },
+})
 
 app.get('/api/health', (_request, response) => {
   response.json({ ok: true, service: 'brain-builder-api', version: 1 })
@@ -62,6 +75,50 @@ app.post('/api/questions/district/:district/check', (request, response) => {
   response.json({ correct: parsed.answer === question.correct, guidance: parsed.answer === question.correct ? null : question.think })
 })
 
+app.post('/api/materials', materialUpload.single('material'), async (request, response, next) => {
+  let parser: PDFParse | null = null
+  try {
+    if (!request.file) return response.status(400).json({ error: 'Choose a material to upload.' })
+    let text = request.file.buffer.toString('utf8')
+    if (request.file.mimetype === 'application/pdf') {
+      parser = new PDFParse({ data: request.file.buffer })
+      text = (await parser.getText()).text
+    }
+    const studySet = buildStudySet(request.file.originalname.replace(/\.[^.]+$/, ''), request.file.mimetype, text)
+    await updateDatabase((database) => { database.studySets[studySet.id] = studySet })
+    response.status(201).json(safeStudySet(studySet))
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('complete, readable')) {
+      return response.status(422).json({ error: error.message })
+    }
+    next(error)
+  } finally {
+    await parser?.destroy()
+  }
+})
+
+app.get('/api/materials', async (_request, response, next) => {
+  try {
+    const database = await readDatabase()
+    response.json(Object.values(database.studySets).map((studySet) => safeStudySet(studySet as MaterialStudySet)))
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.post('/api/materials/:id/check', async (request, response, next) => {
+  try {
+    const parsed = z.object({ questionId: z.string(), answer: z.number().int().min(0).max(3) }).parse(request.body)
+    const database = await readDatabase()
+    const studySet = database.studySets[request.params.id] as MaterialStudySet | undefined
+    const question = studySet?.questions.find((item) => item.id === parsed.questionId)
+    if (!question) return response.status(404).json({ error: 'Study question not found.' })
+    response.json({ correct: parsed.answer === question.correct, source: question.source })
+  } catch (error) {
+    next(error)
+  }
+})
+
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url))
 const productionDirectory = path.resolve(currentDirectory, '../dist')
 app.use(express.static(productionDirectory))
@@ -70,6 +127,8 @@ app.get('*splat', (_request, response) => response.sendFile(path.join(production
 app.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
   void _next
   if (error instanceof z.ZodError) return response.status(400).json({ error: 'Invalid request.', details: error.issues })
+  if (error instanceof multer.MulterError) return response.status(400).json({ error: error.code === 'LIMIT_FILE_SIZE' ? 'Files must be 5 MB or smaller.' : error.message })
+  if (error instanceof Error && error.message.startsWith('Use a')) return response.status(400).json({ error: error.message })
   console.error(error)
   response.status(500).json({ error: 'Something went wrong.' })
 })
