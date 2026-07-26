@@ -37,13 +37,13 @@ Character prompts used the supplied Hero Academy references and requested friend
 
 Haru was produced in built-in edit mode from the user-supplied male Hero Academy illustration, preserving the character, uniform, campus, pose, and blue/white/gold direction. He appears prominently in the Library as the Reward Captain.
 
-The Library hotlinks anime stills for its catalog prototype and links each franchise to its official home:
+The Library uses the user-supplied One Piece and JJK images as local catalog assets, hotlinks the Ayanokoji visual, and links each franchise to its official home:
 
-| Spotlight | Display order | Official franchise link |
-| --- | --- | --- |
-| Gear 5 Luffy / One Piece | Primary feature | `one-piece.com` |
-| Gojo Satoru / Jujutsu Kaisen | Secondary | `jujutsukaisen.jp` |
-| Ayanokoji / Classroom of the Elite | Secondary | `you-zitsu.com` |
+| Spotlight | Display order | Image location | Official franchise link |
+| --- | --- | --- | --- |
+| Gear 5 Luffy / One Piece | Primary feature | `public/images/manga/one-piece-gear-5.png` | `one-piece.com` |
+| Gojo Satoru / Jujutsu Kaisen | Secondary | `public/images/manga/jjk-gojo.png` | `jujutsukaisen.jp` |
+| Ayanokoji / Classroom of the Elite | Secondary | Remote prototype image | `you-zitsu.com` |
 
 The repository does not copy these images or reproduce comic chapters. The app links each card to its official source and uses the artwork only for a catalog prototype. Obtain written licenses or replace the catalog before commercial release. Existing locally generated comic files are unused development history.
 
