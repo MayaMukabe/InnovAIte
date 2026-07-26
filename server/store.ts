@@ -19,10 +19,13 @@ type Database = {
 const dataDirectory = path.resolve('server/data')
 const dataFile = path.join(dataDirectory, 'store.json')
 let writeQueue = Promise.resolve()
+let ephemeralDatabase: Database | null = null
+const isServerless = Boolean(process.env.VERCEL)
 
 const emptyDatabase = (): Database => ({ profiles: {}, studySets: {} })
 
 export async function readDatabase(): Promise<Database> {
+  if (isServerless) return ephemeralDatabase ?? emptyDatabase()
   try {
     return JSON.parse(await readFile(dataFile, 'utf8')) as Database
   } catch (error) {
@@ -32,6 +35,12 @@ export async function readDatabase(): Promise<Database> {
 }
 
 export async function updateDatabase(change: (database: Database) => void): Promise<Database> {
+  if (isServerless) {
+    const database = ephemeralDatabase ?? emptyDatabase()
+    change(database)
+    ephemeralDatabase = database
+    return database
+  }
   let result = emptyDatabase()
   writeQueue = writeQueue.then(async () => {
     result = await readDatabase()
