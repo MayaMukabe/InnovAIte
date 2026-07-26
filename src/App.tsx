@@ -4,6 +4,13 @@ import { bossDamage, bossReward, nextDistrictLevel, questReward } from './gameLo
 type Screen = 'academy' | 'quests' | 'boss' | 'library'
 type DistrictId = 'memory' | 'logic' | 'reading' | 'creativity' | 'curiosity'
 type CityProgress = Record<DistrictId, number>
+type LearningStats = {
+  questsCompleted: number
+  firstTryWins: number
+  reflectionsWritten: number
+  bossWins: number
+  bestBossTime: number
+}
 
 const districts: Array<{ id: DistrictId; icon: string; name: string; building: string; skill: string; color: string; image: string }> = [
   { id: 'memory', icon: '▤', name: 'Memory District', building: 'Grand Library', skill: 'Recall & retention', color: 'green', image: '/images/districts/grand-library.webp' },
@@ -62,8 +69,14 @@ function Nav({ screen, onChange }: { screen: Screen; onChange: (screen: Screen) 
   )
 }
 
-function Academy({ city, startQuest }: { city: CityProgress; startQuest: (district: DistrictId) => void }) {
+function Academy({ city, stats, startQuest }: { city: CityProgress; stats: LearningStats; startQuest: (district: DistrictId) => void }) {
   const totalGrowth = Object.values(city).reduce((sum, value) => sum + value, 0)
+  const achievements = [
+    { icon: '⌂', name: 'City Founder', unlocked: totalGrowth >= 12 },
+    { icon: '◎', name: 'Deep Thinker', unlocked: stats.reflectionsWritten >= 3 },
+    { icon: 'ϟ', name: 'Boss Breaker', unlocked: stats.bossWins >= 1 },
+    { icon: '★', name: 'First-Try Hero', unlocked: stats.firstTryWins >= 3 },
+  ]
   return (
     <main className="page academy-page">
       <section className="hero-card">
@@ -126,6 +139,27 @@ function Academy({ city, startQuest }: { city: CityProgress; startQuest: (distri
           <p><strong>12 problems</strong> solved without answer reveals. That’s real learner power.</p>
         </article>
       </section>
+
+      <section className="section impact-section">
+        <div className="section-heading"><div><span className="eyebrow">LEARNING EVIDENCE</span><h2>Your Mindprint</h2></div><span className="evidence-note">Private · Stored on this device</span></div>
+        <div className="impact-grid">
+          <article className="mindprint-card">
+            <div className="mindprint-core"><span>BRAIN</span><strong>{Math.round(totalGrowth / 25 * 100)}%</strong><small>city potential</small></div>
+            <div className="mindprint-skills">{districts.map((district) => <div key={district.id}><span>{district.name.replace(' District','')}</span><i><b className={district.color} style={{ width: `${city[district.id] / 5 * 100}%` }} /></i><strong>LV {city[district.id]}</strong></div>)}</div>
+          </article>
+          <article className="evidence-card">
+            <span className="eyebrow">EFFORT THAT COUNTS</span><h3>Growth is more than accuracy</h3>
+            <div className="evidence-stats"><div><strong>{stats.questsCompleted}</strong><span>Quests completed</span></div><div><strong>{stats.reflectionsWritten}</strong><span>Strategies explained</span></div><div><strong>{stats.firstTryWins}</strong><span>First-try wins</span></div><div><strong>{stats.bestBossTime || '—'}{stats.bestBossTime ? 's' : ''}</strong><span>Best boss finish</span></div></div>
+            <p>We reward attempts, revision, explanation, and transfer—not just getting an answer fast.</p>
+          </article>
+        </div>
+        <div className="achievement-row">{achievements.map((badge) => <article className={badge.unlocked ? 'unlocked' : ''} key={badge.name}><Icon name={badge.icon} /><div><strong>{badge.name}</strong><span>{badge.unlocked ? 'Unlocked' : 'Keep growing to unlock'}</span></div></article>)}</div>
+      </section>
+
+      <section className="section trust-panel">
+        <div><span className="eyebrow">RESPONSIBLE AI, BUILT IN</span><h2>The student stays the hero.</h2><p>Brain Builder separates coaching from correctness so AI cannot quietly become the authority.</p></div>
+        <div className="trust-flow"><article><Icon name="♟" /><strong>Student controls</strong><span>Strategy, attempt, explanation</span></article><i>→</i><article><Icon name="✦" /><strong>AI may coach</strong><span>Questions and process hints</span></article><i>→</i><article><Icon name="✓" /><strong>Reviewed bank checks</strong><span>Answers and equivalence</span></article></div>
+      </section>
     </main>
   )
 }
@@ -165,7 +199,7 @@ const bossQuestions = [
   { prompt: 'Solve: 3(z + 4) = 27', choices: ['z = 3', 'z = 5', 'z = 7', 'z = 9'], correct: 1 },
 ]
 
-function GlitchBoss({ onReward }: { onReward: (xp: number) => void }) {
+function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: number) => void }) {
   const [status, setStatus] = useState<'intro' | 'playing' | 'won' | 'lost'>('intro')
   const [time, setTime] = useState(90)
   const [hp, setHp] = useState(100)
@@ -202,7 +236,7 @@ function GlitchBoss({ onReward }: { onReward: (xp: number) => void }) {
       setFeedback(`Direct hit! −${damage} boss HP${damage > 20 ? ' · Combo bonus!' : ''}`)
       if (nextHp === 0 || question === bossQuestions.length - 1) {
         setStatus('won')
-        onReward(bossReward(time))
+        onReward(bossReward(time), time)
       } else {
         window.setTimeout(() => {
           setQuestion((value) => value + 1)
@@ -271,7 +305,7 @@ const questContent: Record<DistrictId, { prompt: string; answers: string[]; corr
   curiosity: { prompt: 'Which question would best begin an investigation about plant growth?', answers: ['Are plants nice?', 'Which color is best?', 'How does light duration affect height?', 'Do I like plants?'], correct: 2, think: 'A strong research question identifies something measurable.' },
 }
 
-function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId; onComplete: (district: DistrictId, xp: number) => void; goHome: () => void }) {
+function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId; onComplete: (district: DistrictId, xp: number, firstTry: boolean) => void; goHome: () => void }) {
   const district = districts.find((item) => item.id === districtId)!
   const content = questContent[districtId]
   const [stage, setStage] = useState<'think' | 'attempt' | 'reflect' | 'grown'>('think')
@@ -296,7 +330,7 @@ function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId
     }
     setStage('grown')
     setMessage('')
-    onComplete(districtId, questReward(attempts))
+    onComplete(districtId, questReward(attempts), attempts <= 1)
   }
 
   return (
@@ -339,27 +373,46 @@ function App() {
     const saved = localStorage.getItem('brain-builder-city')
     return saved ? JSON.parse(saved) as CityProgress : { memory: 3, logic: 2, reading: 4, creativity: 1, curiosity: 1 }
   })
+  const [stats, setStats] = useState<LearningStats>(() => {
+    const saved = localStorage.getItem('brain-builder-stats')
+    return saved ? JSON.parse(saved) as LearningStats : { questsCompleted: 0, firstTryWins: 0, reflectionsWritten: 0, bossWins: 0, bestBossTime: 0 }
+  })
 
   useEffect(() => {
     localStorage.setItem('brain-builder-city', JSON.stringify(city))
     localStorage.setItem('brain-builder-xp', String(xp))
-  }, [city, xp])
+    localStorage.setItem('brain-builder-stats', JSON.stringify(stats))
+  }, [city, stats, xp])
 
   const startQuest = (district: DistrictId) => {
     setActiveDistrict(district)
     setScreen('quests')
   }
-  const completeQuest = (district: DistrictId, reward: number) => {
+  const completeQuest = (district: DistrictId, reward: number, firstTry: boolean) => {
     setCity((current) => ({ ...current, [district]: nextDistrictLevel(current[district]) }))
     setXp((current) => current + reward)
+    setStats((current) => ({
+      ...current,
+      questsCompleted: current.questsCompleted + 1,
+      reflectionsWritten: current.reflectionsWritten + 1,
+      firstTryWins: current.firstTryWins + (firstTry ? 1 : 0),
+    }))
+  }
+  const completeBoss = (reward: number, secondsRemaining: number) => {
+    setXp((current) => current + reward)
+    setStats((current) => ({
+      ...current,
+      bossWins: current.bossWins + 1,
+      bestBossTime: Math.max(current.bestBossTime, secondsRemaining),
+    }))
   }
 
   return (
     <div className="app">
       <Header xp={xp} />
-      {screen === 'academy' && <Academy city={city} startQuest={startQuest} />}
+      {screen === 'academy' && <Academy city={city} stats={stats} startQuest={startQuest} />}
       {screen === 'library' && <Library />}
-      {screen === 'boss' && <GlitchBoss onReward={(reward) => setXp((current) => current + reward)} />}
+      {screen === 'boss' && <GlitchBoss onReward={completeBoss} />}
       {screen === 'quests' && <BrainQuest districtId={activeDistrict} onComplete={completeQuest} goHome={() => setScreen('academy')} />}
       <Nav screen={screen} onChange={setScreen} />
     </div>
