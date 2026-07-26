@@ -25,6 +25,7 @@ const profileSchema = z.object({
     reflectionsWritten: z.number().int().min(0),
     bossWins: z.number().int().min(0),
     bestBossTime: z.number().int().min(0),
+    activityDates: z.array(z.iso.date()).max(60),
   }),
   comics: z.object({
     gearbound: z.number().int().min(0).max(3),

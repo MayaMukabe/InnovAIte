@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bossDamage, bossReward, canAfford, nextComicChapter, nextDistrictLevel, questReward } from './gameLogic'
+import { activityStreak, bossDamage, bossReward, canAfford, nextComicChapter, nextDistrictLevel, questReward, rankForXP } from './gameLogic'
 
 describe('Brain City progression', () => {
   it('upgrades a district by one level', () => {
@@ -25,6 +25,19 @@ describe('XP comic economy', () => {
   it('never unlocks beyond the final chapter', () => {
     expect(nextComicChapter(2)).toBe(3)
     expect(nextComicChapter(3)).toBe(3)
+  })
+})
+
+describe('real learner progression', () => {
+  it('derives rank from current XP', () => {
+    expect(rankForXP(681).name).toBe('Silver Hero')
+    expect(rankForXP(1_600).name).toBe('Diamond Hero')
+  })
+
+  it('counts consecutive activity days ending today', () => {
+    const today = new Date('2026-07-25T12:00:00Z')
+    expect(activityStreak(['2026-07-23', '2026-07-24', '2026-07-25'], today)).toBe(3)
+    expect(activityStreak(['2026-07-21'], today)).toBe(0)
   })
 })
 

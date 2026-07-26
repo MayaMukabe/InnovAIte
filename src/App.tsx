@@ -5,7 +5,7 @@ import {
   Sparkles, Swords, Target, Telescope, Upload, UserRound, Zap,
   type LucideIcon,
 } from 'lucide-react'
-import { bossDamage, bossReward, canAfford, nextComicChapter, nextDistrictLevel, questReward } from './gameLogic'
+import { activityStreak, bossDamage, bossReward, canAfford, nextComicChapter, nextDistrictLevel, questReward, rankForXP } from './gameLogic'
 import MaterialStudio from './MaterialStudio'
 import { checkDistrictAnswer, loadDistrictQuestions, loadProfile, saveProfile } from './api'
 
@@ -18,6 +18,7 @@ type LearningStats = {
   reflectionsWritten: number
   bossWins: number
   bestBossTime: number
+  activityDates: string[]
 }
 type ComicId = 'gearbound' | 'skyLibrary' | 'starScouts'
 type ComicProgress = Record<ComicId, number>
@@ -103,6 +104,18 @@ function Nav({ screen, onChange }: { screen: Screen; onChange: (screen: Screen) 
 function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: LearningStats; xp: number; startQuest: (district: DistrictId) => void }) {
   const totalGrowth = Object.values(city).reduce((sum, value) => sum + value, 0)
   const recommended = districts.reduce((lowest, district) => city[district.id] < city[lowest.id] ? district : lowest, districts[0])
+  const rank = rankForXP(xp)
+  const streakDays = activityStreak(stats.activityDates ?? [])
+  const today = new Date()
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7))
+  const weekDates = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(monday)
+    date.setDate(monday.getDate() + index)
+    return date.toISOString().slice(0, 10)
+  })
+  const activeDates = new Set(stats.activityDates ?? [])
+  const weeklyWins = weekDates.filter((date) => activeDates.has(date)).length
   const achievements = [
     { icon: '⌂', name: 'City Founder', unlocked: totalGrowth >= 12 },
     { icon: '◎', name: 'Deep Thinker', unlocked: stats.reflectionsWritten >= 3 },
@@ -178,13 +191,13 @@ function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: L
       <section className="dashboard-grid section">
         <article className="rank-card">
           <span className="eyebrow">CURRENT RANK</span>
-          <div className="rank-medal">Ⅲ<span>★</span></div><h2>Gold Hero</h2><p>Top 5% this week. One more quest to reach Diamond.</p>
-          <div className="rank-stats"><div><strong>24</strong><span>Weekly wins</span></div><div><strong>1,240</strong><span>Hero points</span></div></div>
+          <div className="rank-medal">{rank.mark}<span>★</span></div><h2>{rank.name}</h2><p>{rank.next - xp} XP until your next rank milestone.</p>
+          <div className="rank-stats"><div><strong>{weeklyWins}</strong><span>Active days</span></div><div><strong>{xp.toLocaleString()}</strong><span>Hero XP</span></div></div>
         </article>
         <article className="activity-card">
-          <div className="section-heading"><div><span className="eyebrow">THIS WEEK</span><h2>Thinking streak</h2></div><strong className="streak">🔥 4 days</strong></div>
-          <div className="week">{['M','T','W','T','F','S','S'].map((day, index) => <span className={index < 4 ? 'done' : ''} key={`${day}${index}`}>{index < 4 ? '✓' : day}</span>)}</div>
-          <p><strong>12 problems</strong> solved without answer reveals. That’s real learner power.</p>
+          <div className="section-heading"><div><span className="eyebrow">THIS WEEK</span><h2>Thinking streak</h2></div><strong className="streak">🔥 {streakDays} {streakDays === 1 ? 'day' : 'days'}</strong></div>
+          <div className="week">{['M','T','W','T','F','S','S'].map((day, index) => <span className={activeDates.has(weekDates[index]) ? 'done' : ''} key={`${day}${index}`}>{activeDates.has(weekDates[index]) ? <Icon name="check" /> : day}</span>)}</div>
+          <p><strong>{stats.questsCompleted + stats.bossWins} learning wins</strong> completed. Return tomorrow to keep your pathway active.</p>
         </article>
       </section>
 
@@ -498,7 +511,8 @@ function App() {
   })
   const [stats, setStats] = useState<LearningStats>(() => {
     const saved = localStorage.getItem('brain-builder-stats')
-    return saved ? JSON.parse(saved) as LearningStats : { questsCompleted: 0, firstTryWins: 0, reflectionsWritten: 0, bossWins: 0, bestBossTime: 0 }
+    const stored = saved ? JSON.parse(saved) as Partial<LearningStats> : {}
+    return { questsCompleted: 0, firstTryWins: 0, reflectionsWritten: 0, bossWins: 0, bestBossTime: 0, activityDates: [], ...stored }
   })
   const [comics, setComics] = useState<ComicProgress>(() => {
     const saved = localStorage.getItem('brain-builder-comics')
@@ -524,6 +538,7 @@ function App() {
             reflectionsWritten: profile.stats.reflectionsWritten ?? 0,
             bossWins: profile.stats.bossWins ?? 0,
             bestBossTime: profile.stats.bestBossTime ?? 0,
+            activityDates: profile.stats.activityDates ?? [],
           })
           setComics({ gearbound: 0, skyLibrary: 0, starScouts: 0, ...profile.comics } as ComicProgress)
         }
@@ -555,6 +570,7 @@ function App() {
       questsCompleted: current.questsCompleted + 1,
       reflectionsWritten: current.reflectionsWritten + 1,
       firstTryWins: current.firstTryWins + (firstTry ? 1 : 0),
+      activityDates: [...new Set([...current.activityDates, new Date().toISOString().slice(0, 10)])].slice(-60),
     }))
   }
   const completeBoss = (reward: number, secondsRemaining: number) => {
@@ -563,6 +579,7 @@ function App() {
       ...current,
       bossWins: current.bossWins + 1,
       bestBossTime: Math.max(current.bestBossTime, secondsRemaining),
+      activityDates: [...new Set([...current.activityDates, new Date().toISOString().slice(0, 10)])].slice(-60),
     }))
   }
   const unlockComic = (comic: ComicId, cost: number) => {
@@ -571,12 +588,19 @@ function App() {
     setComics((current) => ({ ...current, [comic]: nextComicChapter(current[comic]) }))
     return true
   }
+  const completeMaterial = (reward: number) => {
+    setXp((current) => current + reward)
+    setStats((current) => ({
+      ...current,
+      activityDates: [...new Set([...current.activityDates, new Date().toISOString().slice(0, 10)])].slice(-60),
+    }))
+  }
 
   return (
     <div className="app">
       <Header xp={xp} syncStatus={syncStatus} />
       {screen === 'academy' && <Academy city={city} stats={stats} xp={xp} startQuest={startQuest} />}
-      {screen === 'library' && <Library xp={xp} comics={comics} onUnlock={unlockComic} onMaterialReward={(reward) => setXp((current) => current + reward)} />}
+      {screen === 'library' && <Library xp={xp} comics={comics} onUnlock={unlockComic} onMaterialReward={completeMaterial} />}
       {screen === 'boss' && <GlitchBoss onReward={completeBoss} />}
       {screen === 'quests' && <BrainQuest districtId={activeDistrict} onComplete={completeQuest} goHome={() => setScreen('academy')} />}
       <Nav screen={screen} onChange={setScreen} />

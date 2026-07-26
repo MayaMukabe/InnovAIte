@@ -5,7 +5,7 @@ export type StoredProfile = {
   id: string
   xp: number
   city: Record<string, number>
-  stats: Record<string, number>
+  stats: Record<string, number | string[]>
   comics: Record<string, number>
   updatedAt: string
 }

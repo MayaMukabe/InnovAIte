@@ -1,7 +1,14 @@
 export type ProfilePayload = {
   xp: number
   city: Record<string, number>
-  stats: Record<string, number>
+  stats: {
+    questsCompleted: number
+    firstTryWins: number
+    reflectionsWritten: number
+    bossWins: number
+    bestBossTime: number
+    activityDates: string[]
+  }
   comics: Record<string, number>
 }
 
