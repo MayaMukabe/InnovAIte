@@ -69,14 +69,30 @@ function Nav({ screen, onChange }: { screen: Screen; onChange: (screen: Screen) 
   )
 }
 
-function Academy({ city, stats, startQuest }: { city: CityProgress; stats: LearningStats; startQuest: (district: DistrictId) => void }) {
+function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: LearningStats; xp: number; startQuest: (district: DistrictId) => void }) {
   const totalGrowth = Object.values(city).reduce((sum, value) => sum + value, 0)
+  const recommended = districts.reduce((lowest, district) => city[district.id] < city[lowest.id] ? district : lowest, districts[0])
   const achievements = [
     { icon: '⌂', name: 'City Founder', unlocked: totalGrowth >= 12 },
     { icon: '◎', name: 'Deep Thinker', unlocked: stats.reflectionsWritten >= 3 },
     { icon: 'ϟ', name: 'Boss Breaker', unlocked: stats.bossWins >= 1 },
     { icon: '★', name: 'First-Try Hero', unlocked: stats.firstTryWins >= 3 },
   ]
+  const exportReport = () => {
+    const report = {
+      generatedAt: new Date().toISOString(),
+      xp,
+      city,
+      learningEvidence: stats,
+      note: 'Learner-controlled report with progress totals only; no answers or written reflections.',
+    }
+    const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `brain-builder-progress-${new Date().toISOString().slice(0, 10)}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
   return (
     <main className="page academy-page">
       <section className="hero-card">
@@ -84,7 +100,7 @@ function Academy({ city, stats, startQuest }: { city: CityProgress; stats: Learn
           <span className="eyebrow">BRAIN BUILDER</span>
           <h1>Grow your mind.<br /><em>Build your city.</em></h1>
           <p>Every thoughtful attempt upgrades a district in your Brain City. AI guides the journey—you do the thinking.</p>
-          <button className="button button-gold" onClick={() => startQuest('logic')}>START TODAY’S QUEST <Icon name="ϟ" /></button>
+          <button className="button button-gold" onClick={() => startQuest(recommended.id)}>GROW {recommended.building.toUpperCase()} <Icon name="ϟ" /></button>
           <small>Think → Attempt → Guidance → Understanding → Growth</small>
         </div>
         <div className="mentor-art">
@@ -117,7 +133,7 @@ function Academy({ city, stats, startQuest }: { city: CityProgress; stats: Learn
             <article className={`sector-card ${district.color}`} key={district.id}>
               <img className="district-card-art" src={district.image} alt={`${district.building} illustrated district`} />
               <div className="sector-icon"><Icon name={district.icon} /></div>
-              <span className="status-chip">LEVEL {city[district.id]}</span>
+              <span className="status-chip">{district.id === recommended.id ? 'RECOMMENDED' : `LEVEL ${city[district.id]}`}</span>
               <h3>{district.name}</h3><p>Upgrade your {district.building} through {district.skill.toLowerCase()} challenges.</p>
               <div className="progress-label"><span>Next upgrade</span><strong>{city[district.id] * 18}%</strong></div>
               <div className="progress"><span style={{ width: `${Math.min(city[district.id] * 18, 100)}%` }} /></div>
@@ -151,6 +167,7 @@ function Academy({ city, stats, startQuest }: { city: CityProgress; stats: Learn
             <span className="eyebrow">EFFORT THAT COUNTS</span><h3>Growth is more than accuracy</h3>
             <div className="evidence-stats"><div><strong>{stats.questsCompleted}</strong><span>Quests completed</span></div><div><strong>{stats.reflectionsWritten}</strong><span>Strategies explained</span></div><div><strong>{stats.firstTryWins}</strong><span>First-try wins</span></div><div><strong>{stats.bestBossTime || '—'}{stats.bestBossTime ? 's' : ''}</strong><span>Best boss finish</span></div></div>
             <p>We reward attempts, revision, explanation, and transfer—not just getting an answer fast.</p>
+            <button className="report-button" onClick={exportReport}><Icon name="⇩" /> Export my private progress report</button>
           </article>
         </div>
         <div className="achievement-row">{achievements.map((badge) => <article className={badge.unlocked ? 'unlocked' : ''} key={badge.name}><Icon name={badge.icon} /><div><strong>{badge.name}</strong><span>{badge.unlocked ? 'Unlocked' : 'Keep growing to unlock'}</span></div></article>)}</div>
@@ -410,7 +427,7 @@ function App() {
   return (
     <div className="app">
       <Header xp={xp} />
-      {screen === 'academy' && <Academy city={city} stats={stats} startQuest={startQuest} />}
+      {screen === 'academy' && <Academy city={city} stats={stats} xp={xp} startQuest={startQuest} />}
       {screen === 'library' && <Library />}
       {screen === 'boss' && <GlitchBoss onReward={completeBoss} />}
       {screen === 'quests' && <BrainQuest districtId={activeDistrict} onComplete={completeQuest} goHome={() => setScreen('academy')} />}
