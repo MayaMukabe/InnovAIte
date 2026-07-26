@@ -1,6 +1,7 @@
 import { chromium } from 'playwright'
-import { mkdir } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { mkdir, mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 
 const baseURL = process.env.DEMO_URL ?? 'http://127.0.0.1:5173'
 const outputDirectory = resolve('demo')
@@ -9,12 +10,13 @@ const screenshotPath = resolve(outputDirectory, 'brain-builder-backup.png')
 const pause = (milliseconds) => new Promise((done) => setTimeout(done, milliseconds))
 
 await mkdir(outputDirectory, { recursive: true })
+const recordingDirectory = await mkdtemp(join(tmpdir(), 'brain-builder-recording-'))
 
 const browser = await chromium.launch({ headless: true })
 const context = await browser.newContext({
   baseURL,
   viewport: { width: 1440, height: 900 },
-  recordVideo: { dir: outputDirectory, size: { width: 1280, height: 800 } },
+  recordVideo: { dir: recordingDirectory, size: { width: 1280, height: 800 } },
 })
 const page = await context.newPage()
 const video = page.video()
@@ -62,6 +64,8 @@ async function identifyAnswer(district, band, prompt) {
 
 try {
   await page.goto('/', { waitUntil: 'networkidle' })
+  await page.locator('.band-picker select').selectOption('middle')
+  await pause(1200)
   await showStep('Your learning becomes a city you can grow')
   await page.locator('.brain-city').scrollIntoViewIfNeeded()
   await page.mouse.move(720, 450, { steps: 18 })
@@ -118,6 +122,7 @@ try {
   await video?.saveAs(videoPath)
   await context.close()
   await browser.close()
+  await rm(recordingDirectory, { recursive: true, force: true })
 }
 
 console.log(`Recorded ${videoPath}`)
