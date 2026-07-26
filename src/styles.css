@@ -74,14 +74,16 @@
 
 /* Hero-energy cursor: fine pointers only */
 @media(pointer:fine) and (prefers-reduced-motion:no-preference){
-  html,button,a,input,select,label{cursor:none!important}
+  html{cursor:url("/cursors/hero-pointer.svg") 3 3,auto}
+  button,a,label,select,input[type="button"],input[type="submit"]{cursor:url("/cursors/hero-pointer-active.svg") 3 3,pointer!important}
+  input[type="text"],input[type="search"],textarea{cursor:text}
   .game-cursor,.cursor-trail{position:fixed;left:0;top:0;z-index:300;pointer-events:none;opacity:0;will-change:transform;transition:opacity .15s}
-  .game-cursor{width:30px;height:36px;margin:-2px 0 0 -2px;transform-origin:3px 3px}
+  .game-cursor{width:1px;height:1px}
   .game-cursor.visible,.cursor-trail.visible{opacity:1}
-  .game-cursor i{position:absolute;left:0;top:0;width:27px;height:34px;background:linear-gradient(135deg,#fff 0 38%,#24c4f4 39% 67%,#006d9f 68%);clip-path:polygon(0 0,100% 64%,61% 70%,78% 100%,61% 100%,45% 73%,18% 100%);filter:drop-shadow(0 2px 0 #003d60) drop-shadow(0 0 7px rgba(0,180,255,.85));transition:.16s transform,.16s filter,.16s background}
-  .game-cursor b{position:absolute;right:-5px;top:1px;color:var(--yellow);font-size:12px;text-shadow:0 1px 0 #765e00,0 0 8px #ffd400;animation:cursor-twinkle 1.1s ease-in-out infinite}
-  .game-cursor.over-action i{transform:scale(1.2) rotate(-7deg);background:linear-gradient(135deg,#fff 0 35%,#ffe45d 36% 68%,#e0a900 69%);filter:drop-shadow(0 2px 0 #755900) drop-shadow(0 0 10px rgba(255,212,0,.95))}
-  .cursor-trail{margin:14px 0 0 13px;color:#14b8ed;font-size:8px;text-shadow:0 0 8px #00b4ff}
+  .game-cursor i{display:none}
+  .game-cursor b{position:absolute;left:25px;top:3px;color:var(--yellow);font-size:10px;text-shadow:0 1px 0 #765e00,0 0 8px #ffd400;animation:cursor-twinkle 1.1s ease-in-out infinite}
+  .game-cursor.over-action b{font-size:14px;color:#ffd400}
+  .cursor-trail{margin:18px 0 0 15px;color:#14b8ed;font-size:7px;text-shadow:0 0 8px #00b4ff}
   .game-cursor.cursor-strike:after{content:"";position:absolute;left:-7px;top:-7px;width:16px;height:16px;border:3px solid #ffd400;transform:rotate(45deg);animation:cursor-strike .36s ease-out both}
   @keyframes cursor-twinkle{50%{transform:scale(.55) rotate(70deg);opacity:.55}}
   @keyframes cursor-strike{from{transform:rotate(45deg) scale(.3);opacity:1}to{transform:rotate(135deg) scale(1.8);opacity:0}}
