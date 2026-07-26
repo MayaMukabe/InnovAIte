@@ -208,6 +208,11 @@ function Academy({ city, stats, xp, startQuest, onMaterialReward }: { city: City
 
       <MaterialStudio onReward={onMaterialReward} />
 
+      <section className="section subject-archives">
+        <div className="section-heading"><div><span className="eyebrow">EXPLORE BY SKILL</span><h2>Subject archives</h2></div></div>
+        <div><button onClick={() => startQuest('logic')}><Cog /> Math mastery</button><button onClick={() => startQuest('memory')}><Brain /> Memory lab</button><button onClick={() => startQuest('reading')}><BookOpen /> Reading craft</button><button onClick={() => startQuest('creativity')}><Palette /> Creative studio</button><button onClick={() => startQuest('curiosity')}><Telescope /> Research skills</button></div>
+      </section>
+
       <section className="dashboard-grid section">
         <article className="rank-card">
           <span className="eyebrow">CURRENT RANK</span>
@@ -289,10 +294,6 @@ function Library({ xp, comics, onUnlock }: { xp: number; comics: ComicProgress; 
         </div>
       </section>
       <ComicShelf xp={xp} progress={comics} onUnlock={onUnlock} />
-      <section className="section subject-archives">
-        <div className="section-heading"><div><span className="eyebrow">EXPLORE BY SKILL</span><h2>Subject archives</h2></div></div>
-        <div><button><Cog /> Math mastery</button><button><Brain /> Memory lab</button><button><BookOpen /> Reading craft</button><button><Palette /> Creative studio</button><button><Telescope /> Research skills</button></div>
-      </section>
     </main>
   )
 }
