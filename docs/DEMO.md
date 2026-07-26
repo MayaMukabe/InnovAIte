@@ -11,10 +11,10 @@ Brain Builder turns invisible cognitive effort into a city students can grow—a
 3. Make one incorrect attempt to demonstrate process-only guidance.
 4. Answer correctly, explain the strategy, and upgrade the building.
 5. Return to the city to show persistent visual growth, real streak evidence, and XP.
-6. Open **Library → Material Studio**, upload a short note, review a grounded card, and answer an assessment with source evidence.
+6. Open **Academy → Material Studio**, upload a short note, review a grounded card, and answer an assessment with source evidence.
 7. Open **Boss**, answer correctly to trigger animated damage, then land the final strike.
 8. Show the defeated Boss and victory celebration.
-9. Open the **Comic Shop** and spend earned XP to unlock a chapter.
+9. Open **Library → Manga Rewards** and spend earned XP to reveal one official licensed chapter link.
 10. Explain that deterministic reviewed content—not AI—owns correctness.
 
 ## Judging narrative

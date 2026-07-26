@@ -52,7 +52,7 @@ Included:
 - Learner-controlled progress export with no response text
 - Original local artwork for all five districts
 - Material Studio for source-grounded learning and assessment from TXT, Markdown, or PDF
-- XP Comic Catalog with persistent unlocks and original critical-reading missions
+- XP Manga Reward Catalog with persistent chapter-by-chapter unlocks and official-reader links
 - Validated Express API with reviewed question checks and prototype persistence
 
 Not yet included:

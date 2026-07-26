@@ -34,7 +34,7 @@ The extracted set is saved by the prototype store and can be opened in Learn or 
 
 ## XP Comic Shop
 
-Comic spotlight metadata and original reading missions are authored in the client. Unlocking checks XP, deducts the price, persists ownership, and opens a critical-reading activity. Promotional artwork remains remotely hosted by each official franchise source; the app does not reproduce manga chapters.
+Manga reward metadata is authored in the client. Unlocking checks XP, deducts the price, persists ownership, and reveals one official licensed chapter link at a time. When a licensed publisher offers only volume pages, the interface labels and links that format honestly. Promotional artwork remains remotely hosted by each official franchise source; the app does not reproduce chapters or bypass publisher access controls.
 
 ## API and storage
 

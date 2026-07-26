@@ -10,8 +10,8 @@ Browser
 ├── District quest state machine
 │   └── Think → Attempt → Reflect → Grow
 ├── Timed Glitch Boss combat
-├── XP comic spotlight catalog and reading missions
-└── Material Studio
+├── XP manga reward catalog and per-chapter official-reader links
+└── Academy Material Studio
     ├── Upload
     ├── Learn cards
     └── Source-grounded assessment

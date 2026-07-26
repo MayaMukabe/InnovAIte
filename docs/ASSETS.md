@@ -29,10 +29,13 @@ District details:
 | Role | Local asset |
 | --- | --- |
 | Spark learning coach | `public/images/characters/spark-coach.webp` |
+| Haru Reward Captain | `public/images/characters/hero-guide.webp` |
 | Active Glitch Boss | `public/images/characters/glitch-boss.webp` |
 | Defeated Glitch Boss | `public/images/characters/glitch-defeated.webp` |
 
 Character prompts used the supplied Hero Academy references and requested friendly expressions, readable silhouettes, and uncluttered backgrounds. The defeated Boss was edited from the active Boss for identity consistency.
+
+Haru was produced in built-in edit mode from the user-supplied male Hero Academy illustration, preserving the character, uniform, campus, pose, and blue/white/gold direction. He appears prominently in the Library as the Reward Captain.
 
 The Library renders remote promotional artwork from first-party franchise pages:
 
