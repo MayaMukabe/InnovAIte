@@ -291,7 +291,7 @@ function Library({ xp, comics, onUnlock, onMaterialReward }: { xp: number; comic
   )
 }
 
-const bossQuestions = [
+const fallbackBossQuestions = [
   { prompt: 'Solve: 5x + 10 = 35', choices: ['x = 3', 'x = 5', 'x = 7', 'x = 9'], correct: 1 },
   { prompt: 'Which number makes 4(y − 2) = 24 true?', choices: ['4', '6', '8', '10'], correct: 2 },
   { prompt: 'A pattern grows 3, 7, 11, 15… What comes next?', choices: ['17', '18', '19', '20'], correct: 2 },
@@ -300,14 +300,24 @@ const bossQuestions = [
 ]
 
 function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: number) => void }) {
+  const difficulties = {
+    training: { name: 'Training Run', band: 'middle' as LearnerBand, time: 105, penalty: 5, reward: 0, description: 'Steady pace · Middle School reasoning' },
+    challenger: { name: 'Challenger', band: 'high' as LearnerBand, time: 90, penalty: 7, reward: 35, description: 'Faster clock · High School reasoning' },
+    mastery: { name: 'Mastery Siege', band: 'proficient' as LearnerBand, time: 75, penalty: 10, reward: 75, description: 'High pressure · Proficient reasoning' },
+  }
+  type Difficulty = keyof typeof difficulties
+  const [difficulty, setDifficulty] = useState<Difficulty>('challenger')
+  const rules = difficulties[difficulty]
+  const [questions, setQuestions] = useState<QuestContent[]>(fallbackBossQuestions.map((item, index) => ({ id: undefined, prompt: item.prompt, answers: item.choices, correct: item.correct, think: `boss-${index}` })))
   const [status, setStatus] = useState<'intro' | 'playing' | 'finishing' | 'won' | 'lost'>('intro')
-  const [time, setTime] = useState(90)
+  const [time, setTime] = useState(rules.time)
   const [hp, setHp] = useState(100)
   const [question, setQuestion] = useState(0)
   const [answer, setAnswer] = useState<number | null>(null)
   const [feedback, setFeedback] = useState('')
   const [combo, setCombo] = useState(0)
   const [lastDamage, setLastDamage] = useState(0)
+  const [checking, setChecking] = useState(false)
 
   useEffect(() => {
     if (status !== 'playing') return
@@ -324,21 +334,38 @@ function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: num
     return () => window.clearInterval(timer)
   }, [status])
 
-  const start = () => {
-    setTime(90); setHp(100); setQuestion(0); setAnswer(null); setFeedback(''); setCombo(0); setLastDamage(0); setStatus('playing')
+  const start = async () => {
+    setTime(rules.time); setHp(100); setQuestion(0); setAnswer(null); setFeedback(''); setCombo(0); setLastDamage(0)
+    try {
+      const bank = await loadDistrictQuestions('logic', rules.band)
+      setQuestions(bank.slice(0, 5))
+    } catch {
+      setQuestions(fallbackBossQuestions.map((item) => ({ prompt: item.prompt, answers: item.choices, correct: item.correct, think: '' })))
+    }
+    setStatus('playing')
   }
-  const attack = () => {
+  const attack = async () => {
     if (answer === null) return
-    if (answer === bossQuestions[question].correct) {
+    setChecking(true)
+    const activeQuestion = questions[question]
+    let isCorrect = answer === activeQuestion.correct
+    try {
+      if (activeQuestion.id) isCorrect = (await checkDistrictAnswer('logic', activeQuestion.id, answer)).correct
+    } catch {
+      setFeedback('Battle link interrupted. Your timer is paused while you retry.')
+      setChecking(false)
+      return
+    }
+    if (isCorrect) {
       const damage = bossDamage(combo)
       const nextHp = Math.max(0, hp - damage)
       setHp(nextHp)
       setCombo((value) => value + 1)
       setLastDamage(damage)
       setFeedback(`Direct hit! −${damage} boss HP${damage > 20 ? ' · Combo bonus!' : ''}`)
-      if (nextHp === 0 || question === bossQuestions.length - 1) {
+      if (nextHp === 0 || question === questions.length - 1) {
         setStatus('finishing')
-        onReward(bossReward(time), time)
+        onReward(bossReward(time) + rules.reward, time)
         window.setTimeout(() => setStatus('won'), 1600)
       } else {
         window.setTimeout(() => {
@@ -349,16 +376,19 @@ function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: num
         }, 650)
       }
     } else {
-      setTime((current) => Math.max(0, current - 7))
+      setTime((current) => Math.max(0, current - rules.penalty))
       setCombo(0)
-      setFeedback('Attack blocked! Review your strategy. −7 seconds')
+      setFeedback(`Attack blocked! Review your strategy. −${rules.penalty} seconds`)
     }
+    setChecking(false)
   }
 
   if (status === 'intro') return (
     <main className="page">
       <section className="boss-landing">
-        <div><span className="eyebrow coral">GLITCH BOSS · LIVE BATTLE</span><h1>Defeat the corruption.</h1><p>Solve five rapid-fire reasoning problems before the clock reaches zero. Every correct answer damages the boss. Consecutive hits charge a combo attack.</p><div className="boss-rules"><span>⏱ 90 seconds</span><span>⚔ Correct = damage</span><span>⌁ Mistake = −7 seconds</span></div><button className="button button-coral" onClick={start}>START BOSS BATTLE <Icon name="ϟ" /></button></div>
+        <div><span className="eyebrow coral">GLITCH BOSS · LIVE BATTLE</span><h1>Defeat the corruption.</h1><p>Choose a combat tier, then solve five rapid-fire reasoning problems before the clock reaches zero.</p>
+          <div className="difficulty-picker" role="group" aria-label="Boss difficulty">{(Object.entries(difficulties) as Array<[Difficulty, typeof rules]>).map(([id, item]) => <button className={difficulty === id ? 'selected' : ''} onClick={() => setDifficulty(id)} key={id}><span>{item.name}</span><small>{item.description}</small><i>{item.time}s · −{item.penalty}s per miss</i></button>)}</div>
+          <div className="boss-rules"><span>⏱ {rules.time} seconds</span><span>⚔ Correct = damage</span><span>⌁ Mistake = −{rules.penalty} seconds</span></div><button className="button button-coral" onClick={start}>START {rules.name.toUpperCase()} <Icon name="ϟ" /></button></div>
         <img src={art.glitch} alt="Glitch Boss battle character" />
       </section>
     </main>
@@ -370,17 +400,17 @@ function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: num
         <span className="eyebrow">{status === 'won' ? 'BOSS DEFEATED' : 'TIME EXPIRED'}</span><h1>{status === 'won' ? 'SYSTEM RESTORED!' : 'THE GLITCH ESCAPED'}</h1>
         {status === 'won' && <div className="victory-confetti" aria-hidden="true">{Array.from({ length: 18 }, (_, index) => <i key={index} />)}</div>}
         <img src={status === 'won' ? '/images/characters/glitch-defeated.webp' : art.glitch} alt="" /><h2>{status === 'won' ? `Victory with ${time}s remaining` : 'Persistence builds power'}</h2>
-        <p>{status === 'won' ? `You earned ${bossReward(time)} XP for speed and accuracy.` : 'No progress was lost. Review your strategies and return stronger.'}</p>
+        <p>{status === 'won' ? `You cleared ${rules.name} and earned ${bossReward(time) + rules.reward} XP.` : 'No progress was lost. Review your strategies and return stronger.'}</p>
         <button className="button button-gold" onClick={start}>{status === 'won' ? 'BATTLE AGAIN' : 'RETRY BATTLE'} →</button>
       </section>
     </main>
   )
 
-  const current = bossQuestions[question]
+  const current = questions[question]
   return (
     <main className="boss-arena">
       <section className="arena-top">
-        <div className="boss-name"><span>⚠</span><div><small>LEVEL 5 BOSS</small><strong>THE GLITCH</strong></div></div>
+        <div className="boss-name"><span>⚠</span><div><small>{rules.name.toUpperCase()} · {learnerBandLabels[rules.band]}</small><strong>THE GLITCH</strong></div></div>
         <div className={`battle-timer ${time <= 20 ? 'danger' : ''}`}><small>TIME LEFT</small><strong>{Math.floor(time / 60)}:{String(time % 60).padStart(2, '0')}</strong></div>
         <div className="arena-score"><small>COMBO</small><strong>×{combo}</strong></div>
       </section>
@@ -393,10 +423,10 @@ function GlitchBoss({ onReward }: { onReward: (xp: number, secondsRemaining: num
           <span className="boss-taunt">{feedback || 'Solve fast, hero. Your clock is already running!'}</span>
         </div>
         <article className="attack-console">
-          <div className="console-label"><span>ATTACK {question + 1} / {bossQuestions.length}</span><strong>+20 DAMAGE</strong></div>
+          <div className="console-label"><span>ATTACK {question + 1} / {questions.length}</span><strong>{rules.name.toUpperCase()}</strong></div>
           <h1>{current.prompt}</h1>
-          <div className="attack-answers">{current.choices.map((choice, index) => <button className={answer === index ? 'selected' : ''} onClick={() => setAnswer(index)} key={choice}><span>{String.fromCharCode(65 + index)}</span>{choice}</button>)}</div>
-          <button className="button button-coral attack-button" disabled={answer === null} onClick={attack}>LAUNCH ATTACK <Icon name="ϟ" /></button>
+          <div className="attack-answers">{current.answers.map((choice, index) => <button className={answer === index ? 'selected' : ''} disabled={checking} onClick={() => setAnswer(index)} key={choice}><span>{String.fromCharCode(65 + index)}</span>{choice}</button>)}</div>
+          <button className="button button-coral attack-button" disabled={answer === null || checking} onClick={attack}>{checking ? 'VERIFYING…' : 'LAUNCH ATTACK'} <Icon name="ϟ" /></button>
           <p><Icon name="◉" /> No hints in Boss Battles. Trust the mind you built.</p>
         </article>
         {status === 'finishing' && <div className="finishing-overlay"><Icon name="zap" /><strong>FINAL STRIKE!</strong><span>Corruption cleared</span></div>}
