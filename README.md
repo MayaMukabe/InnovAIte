@@ -11,6 +11,8 @@ The prototype contains two independent loops:
 
 AI is framed as a coach, never the mathematical authority. Correctness remains grounded in a pre-reviewed question bank; the student controls every decision and whether to request a hint.
 
+The Academy also includes adaptive district recommendations, a five-skill Mindprint, effort evidence, unlockable achievements, best Boss time, private progress export, and a visible responsible-AI trust model.
+
 ## Quick start
 
 Requirements: Node.js 20.19+ or 22.12+ and npm.
@@ -46,8 +48,9 @@ The prototype intentionally has no backend. Brain City levels and XP are stored 
 - [Product specification](docs/PRODUCT.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Responsible AI](docs/RESPONSIBLE_AI.md)
-- [Plain-language code logic](LOGIC.md)
+- [Plain-language code logic](logic.md)
 - [Hackathon demo guide](docs/DEMO.md)
+- [Visual asset provenance](docs/ASSETS.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 

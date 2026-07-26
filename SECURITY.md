@@ -10,7 +10,7 @@ Do not open a public issue for a suspected vulnerability or exposed student data
 
 ## Student-data notice
 
-This prototype is not approved to collect student data. It stores only XP and Brain City district levels in browser `localStorage`. Do not deploy it with authentication, uploads, analytics, or persistent responses until a formal threat model, privacy review, COPPA/FERPA assessment, access-control design, retention policy, and incident-response plan are complete.
+This prototype is not approved to collect student data. It stores XP, Brain City district levels, and aggregate evidence totals in browser `localStorage`. Optional report export excludes selected answers and reflection text. Do not deploy it with authentication, uploads, analytics, or server persistence until a formal threat model, privacy review, COPPA/FERPA assessment, access-control design, retention policy, and incident-response plan are complete.
 
 ## Dependency maintenance
 

@@ -46,6 +46,10 @@ Included:
 - Independent timed Boss Battle with HP, damage, combo, and time penalties
 - Deterministic correctness from local reviewed content
 - Browser-only XP and city progression
+- Adaptive recommendations for the lowest-level district
+- Mindprint, effort evidence, achievements, and best Boss time
+- Learner-controlled progress export with no response text
+- Original local artwork for all five districts
 
 Not yet included:
 
@@ -64,3 +68,7 @@ Not yet included:
 - Learner-reported confidence and agency
 
 Raw time-on-task and total clicks should not be treated as learning outcomes.
+
+## Privacy-first progress sharing
+
+Progress remains on the learner’s device. Export is explicit and learner controlled. The report contains XP, district levels, and aggregate evidence totals; it excludes answer selections and written reflections.

@@ -28,6 +28,10 @@ Browser
 - Mathematical checks are deterministic rather than model-generated.
 - The Boss timer is created and cleaned up with a React effect.
 - XP and district levels use `localStorage` so progress survives refreshes.
+- Aggregate evidence metrics use the same device-only persistence boundary.
+- The recommendation is computed from the district with the lowest level.
+- Export creates a temporary in-browser JSON Blob and revokes its URL.
+- District art is optimized local WebP under `public/images/districts`.
 - Navigation avoids a router while the screen set remains small.
 - Plain CSS exposes all design tokens and avoids runtime styling overhead.
 - Reduced-motion preferences are respected globally.
@@ -44,4 +48,4 @@ Before production, split screen components and domain logic into separate module
 
 ## Data boundaries
 
-The current prototype does not transmit student responses. It stores only XP and district levels in browser `localStorage`. Clearing site data removes that progress. A production design should minimize collection, separate identity from learning events, define retention limits, encrypt data in transit and at rest, and support guardian/educator deletion workflows.
+The current prototype does not transmit student responses. It stores XP, district levels, and aggregate learning evidence in browser `localStorage`. Clearing site data removes that progress. Export excludes answers and reflection text. A production design should minimize collection, separate identity from learning events, define retention limits, encrypt data in transit and at rest, and support guardian/educator deletion workflows.
