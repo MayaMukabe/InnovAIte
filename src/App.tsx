@@ -1,6 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type Screen = 'academy' | 'quests' | 'boss' | 'library'
+type DistrictId = 'memory' | 'logic' | 'reading' | 'creativity' | 'curiosity'
+type CityProgress = Record<DistrictId, number>
+
+const districts: Array<{ id: DistrictId; icon: string; name: string; building: string; skill: string; color: string }> = [
+  { id: 'memory', icon: '▤', name: 'Memory District', building: 'Grand Library', skill: 'Recall & retention', color: 'green' },
+  { id: 'logic', icon: '⚙', name: 'Logic District', building: 'Engineering Lab', skill: 'Reasoning & math', color: 'blue' },
+  { id: 'reading', icon: '▥', name: 'Reading District', building: 'Knowledge Tower', skill: 'Comprehension', color: 'yellow' },
+  { id: 'creativity', icon: '✦', name: 'Creativity District', building: 'Art Studio', skill: 'Ideas & expression', color: 'coral' },
+  { id: 'curiosity', icon: '⌕', name: 'Curiosity District', building: 'Research Center', skill: 'Questions & discovery', color: 'purple' },
+]
 
 const art = {
   mentor:
@@ -21,14 +31,14 @@ const Icon = ({ name }: { name: string }) => (
   <span className="icon" aria-hidden="true">{name}</span>
 )
 
-function Header() {
+function Header({ xp }: { xp: number }) {
   return (
     <header className="topbar">
       <div className="brand">
         <img src={art.avatar} alt="" />
         <div><strong>HERO</strong><span>ACADEMY</span></div>
       </div>
-      <div className="level-pill"><Icon name="✦" /><span>LEVEL 12</span><strong>450 XP</strong></div>
+      <div className="level-pill"><Icon name="✦" /><span>LEVEL {Math.floor(xp / 200) + 1}</span><strong>{xp} XP</strong></div>
     </header>
   )
 }
@@ -51,21 +61,17 @@ function Nav({ screen, onChange }: { screen: Screen; onChange: (screen: Screen) 
   )
 }
 
-function Academy({ startQuest }: { startQuest: () => void }) {
-  const sectors = [
-    { icon: '◎', title: 'Memory Training', copy: 'Strengthen recall without shortcuts.', value: 75, tone: 'green' },
-    { icon: '◇', title: 'Logic Drills', copy: 'Find the flaw. Explain your thinking.', value: 42, tone: 'blue' },
-    { icon: '≡', title: 'Speed Reading', copy: 'Read with focus and understanding.', value: 90, tone: 'yellow' },
-  ]
+function Academy({ city, startQuest }: { city: CityProgress; startQuest: (district: DistrictId) => void }) {
+  const totalGrowth = Object.values(city).reduce((sum, value) => sum + value, 0)
   return (
     <main className="page academy-page">
       <section className="hero-card">
         <div className="hero-copy">
-          <span className="eyebrow">TODAY’S HERO MISSION</span>
-          <h1>Train your brain.<br /><em>Own your answer.</em></h1>
-          <p>Battle a deliberately flawed solution, repair the logic, and prove you can do it independently.</p>
-          <button className="button button-gold" onClick={startQuest}>START LOGIC BATTLE <Icon name="ϟ" /></button>
-          <small>3 rounds · About 8 minutes · +120 XP</small>
+          <span className="eyebrow">BRAIN BUILDER</span>
+          <h1>Grow your mind.<br /><em>Build your city.</em></h1>
+          <p>Every thoughtful attempt upgrades a district in your Brain City. AI guides the journey—you do the thinking.</p>
+          <button className="button button-gold" onClick={() => startQuest('logic')}>START TODAY’S QUEST <Icon name="ϟ" /></button>
+          <small>Think → Attempt → Guidance → Understanding → Growth</small>
         </div>
         <div className="mentor-art">
           <span className="speech">Ready, recruit?</span>
@@ -73,16 +79,33 @@ function Academy({ startQuest }: { startQuest: () => void }) {
         </div>
       </section>
 
+      <section className="section city-section">
+        <div className="section-heading"><div><span className="eyebrow">YOUR MIND, MADE VISIBLE</span><h2>Brain City</h2></div><strong className="city-score">{totalGrowth} growth points</strong></div>
+        <div className="brain-city">
+          <div className="city-skyline" aria-label="Your growing virtual brain city">
+            {districts.map((district) => (
+              <button className={`city-building ${district.color}`} onClick={() => startQuest(district.id)} key={district.id}>
+                <span className="building-level">LV {city[district.id]}</span>
+                <span className="building-shape" style={{ height: `${76 + city[district.id] * 14}px` }}><Icon name={district.icon} /></span>
+                <strong>{district.building}</strong><small>{district.skill}</small>
+              </button>
+            ))}
+          </div>
+          <div className="city-road"><span>✦</span><span>YOUR LEARNING JOURNEY</span><span>✦</span></div>
+        </div>
+      </section>
+
       <section className="section">
-        <div className="section-heading"><div><span className="eyebrow">YOUR TRAINING</span><h2>Power-up sectors</h2></div><button className="text-button">View all →</button></div>
+        <div className="section-heading"><div><span className="eyebrow">CHOOSE WHAT TO GROW</span><h2>City districts</h2></div></div>
         <div className="sector-grid">
-          {sectors.map((sector) => (
-            <article className={`sector-card ${sector.tone}`} key={sector.title}>
-              <div className="sector-icon"><Icon name={sector.icon} /></div>
-              <span className="status-chip">{sector.value > 80 ? 'POWERED UP' : sector.value > 60 ? 'ON TRACK' : 'NEXT UP'}</span>
-              <h3>{sector.title}</h3><p>{sector.copy}</p>
-              <div className="progress-label"><span>Mastery</span><strong>{sector.value}%</strong></div>
-              <div className="progress"><span style={{ width: `${sector.value}%` }} /></div>
+          {districts.slice(0, 3).map((district) => (
+            <article className={`sector-card ${district.color}`} key={district.id}>
+              <div className="sector-icon"><Icon name={district.icon} /></div>
+              <span className="status-chip">LEVEL {city[district.id]}</span>
+              <h3>{district.name}</h3><p>Upgrade your {district.building} through {district.skill.toLowerCase()} challenges.</p>
+              <div className="progress-label"><span>Next upgrade</span><strong>{city[district.id] * 18}%</strong></div>
+              <div className="progress"><span style={{ width: `${Math.min(city[district.id] * 18, 100)}%` }} /></div>
+              <button className="district-action" onClick={() => startQuest(district.id)}>Train here →</button>
             </article>
           ))}
         </div>
@@ -142,117 +165,104 @@ function Boss({ startQuest }: { startQuest: () => void }) {
   )
 }
 
-function Victory({ goHome }: { goHome: () => void }) {
-  return (
-    <main className="page victory-page">
-      <section className="victory-hero">
-        <span className="eyebrow">MISSION ACCOMPLISHED</span>
-        <h1>VICTORY!</h1>
-        <p>You didn’t just find an answer—you repaired the thinking.</p>
-      </section>
-      <section className="victory-grid">
-        <article className="hero-id">
-          <div className="victory-avatar"><img src={art.avatar} alt="Student hero profile" /><span>★</span></div>
-          <span className="status-chip">NEW TITLE UNLOCKED</span><h2>Logic Master</h2><p>“I can explain why, not just what.”</p>
-        </article>
-        <div className="reward-stack">
-          <article className="xp-card"><span>QUEST REWARDS</span><strong>+120 XP</strong><small>★ No-reveal bonus +20</small></article>
-          <article className="transfer-card"><span className="eyebrow">TRANSFER CHECK</span><h2>Independent strategy confirmed</h2><div className="skill-bars"><span>Logic <i style={{ width: '88%' }} /></span><span>Explanation <i style={{ width: '76%' }} /></span><span>Focus <i style={{ width: '82%' }} /></span></div></article>
-        </div>
-      </section>
-      <div className="victory-actions"><button className="button button-gold" onClick={goHome}>BACK TO ACADEMY</button><button className="button button-blue" onClick={() => window.location.reload()}>NEXT QUEST →</button></div>
-    </main>
-  )
+const questContent: Record<DistrictId, { prompt: string; answers: string[]; correct: number; think: string }> = {
+  memory: { prompt: 'Study this sequence: Moon, Key, River, Star. Which item came second?', answers: ['River', 'Key', 'Moon', 'Star'], correct: 1, think: 'Picture each object in a different room of your home.' },
+  logic: { prompt: 'A robot has 3 boxes with 4 gears in each. How many gears are there?', answers: ['7', '10', '12', '14'], correct: 2, think: 'How could equal groups help you model the problem?' },
+  reading: { prompt: 'Maya packed an umbrella because dark clouds filled the sky. What can you infer?', answers: ['It may rain', 'It is nighttime', 'She is traveling', 'It is snowing'], correct: 0, think: 'Connect the clue in the sentence to what usually happens next.' },
+  creativity: { prompt: 'Which change makes “The bird flew” more vivid?', answers: ['The bird was there', 'The scarlet bird soared above silver clouds', 'A bird flew', 'It moved'], correct: 1, think: 'Look for specific details that help you imagine the scene.' },
+  curiosity: { prompt: 'Which question would best begin an investigation about plant growth?', answers: ['Are plants nice?', 'Which color is best?', 'How does light duration affect height?', 'Do I like plants?'], correct: 2, think: 'A strong research question identifies something measurable.' },
 }
 
-function Quest({ goHome }: { goHome: () => void }) {
-  const [phase, setPhase] = useState(0)
-  const [selectedStep, setSelectedStep] = useState<number | null>(null)
-  const [repair, setRepair] = useState('')
-  const [explanation, setExplanation] = useState('')
-  const [hint, setHint] = useState(0)
+function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId; onComplete: (district: DistrictId, xp: number) => void; goHome: () => void }) {
+  const district = districts.find((item) => item.id === districtId)!
+  const content = questContent[districtId]
+  const [stage, setStage] = useState<'think' | 'attempt' | 'reflect' | 'grown'>('think')
+  const [answer, setAnswer] = useState<number | null>(null)
+  const [reflection, setReflection] = useState('')
   const [message, setMessage] = useState('')
-  const [complete, setComplete] = useState(false)
+  const [attempts, setAttempts] = useState(0)
 
-  const checkStep = () => {
-    if (selectedStep === 2) {
-      setMessage('Critical hit! You found the first place the logic breaks.')
-      setPhase(1)
+  const checkAnswer = () => {
+    setAttempts((value) => value + 1)
+    if (answer === content.correct) {
+      setMessage('You found it. Now explain the thinking that got you there.')
+      setStage('reflect')
     } else {
-      setMessage('Not quite. Find the first step that changes the equation incorrectly.')
+      setMessage(`Good attempt. Coach clue: ${content.think}`)
     }
   }
-  const checkRepair = () => {
-    const normalized = repair.replace(/\s/g, '').toLowerCase()
-    if (['x=3', '3'].includes(normalized)) {
-      setMessage('Repair locked in. Now make your reasoning visible.')
-      setPhase(2)
-    } else {
-      setMessage('Check the operation on both sides. What is 9 divided by 3?')
+  const grow = () => {
+    if (reflection.trim().split(/\s+/).length < 5) {
+      setMessage('Tell us a little more about your strategy—at least one clear sentence.')
+      return
     }
+    setStage('grown')
+    setMessage('')
+    onComplete(districtId, attempts <= 1 ? 50 : 35)
   }
-  const checkExplanation = () => {
-    if (explanation.trim().split(/\s+/).length >= 8) {
-      setMessage('Strong explanation. Final Attack unlocked—no hints this round.')
-      setPhase(3)
-    } else {
-      setMessage('Add a little more: name the incorrect operation and explain your correction.')
-    }
-  }
-  const useHint = () => {
-    setHint((current) => Math.min(current + 1, 2))
-    setMessage(hint === 0 ? 'Hint: compare Step 2 with the equation directly above it.' : 'Stronger hint: dividing 9 by 3 cannot produce 4.')
-  }
-
-  if (complete) return <Victory goHome={goHome} />
 
   return (
-    <main className="battle-page">
-      <section className="battle-status">
-        <button className="back-button" onClick={goHome}>← Exit quest</button>
-        <div className="phase-track">{['Spot the glitch','Repair it','Explain why','Final attack'].map((label, index) => <span className={phase === index ? 'current' : phase > index ? 'finished' : ''} key={label}><i>{phase > index ? '✓' : index + 1}</i>{label}</span>)}</div>
-        <div className="xp-meter"><span>XP at stake</span><strong>{120 - hint * 10}</strong></div>
-      </section>
-      <div className="battle-layout">
-        <aside className="glitch-panel">
-          <span className="eyebrow">BOSS · THE GLITCH</span><img src={art.glitch} alt="The friendly Glitch robot" />
-          <div className="health"><span>Glitch stability <strong>{phase === 0 ? 84 : phase === 1 ? 62 : phase === 2 ? 34 : 10}%</strong></span><i><b style={{ width: `${phase === 0 ? 84 : phase === 1 ? 62 : phase === 2 ? 34 : 10}%` }} /></i></div>
-          <blockquote>{phase === 0 ? '“I solved it perfectly. Or did I? Find my first mistake!”' : phase === 3 ? '“One fresh problem. Show me the strategy is yours!”' : '“Nice catch! But can you explain the repair?”'}</blockquote>
-        </aside>
-        <section className="challenge-card">
-          <div className="challenge-top"><div><span className="eyebrow">{phase === 3 ? 'FINAL ATTACK · NO HINTS' : `ROUND ${phase + 1} OF 4`}</span><h1>{phase === 0 ? 'Spot the first wrong step' : phase === 1 ? 'Repair the equation' : phase === 2 ? 'Explain your reasoning' : 'Solve independently'}</h1></div><span className="difficulty">ALGEBRA · LEVEL 2</span></div>
-
-          {phase === 0 && <div className="solution-box"><p className="problem">Solve: <strong>3(x + 2) = 15</strong></p>
-            {[['Distribute 3','3x + 6 = 15'],['Subtract 6','3x = 9'],['Divide by 3','x = 4']].map(([label,value], index) => <button className={selectedStep === index ? 'selected' : ''} onClick={() => setSelectedStep(index)} key={label}><span>{index + 1}</span><div><small>{label}</small><strong>{value}</strong></div><i>{selectedStep === index ? '●' : '○'}</i></button>)}
-          </div>}
-          {phase === 1 && <div className="response-box"><p>The Glitch wrote <strong>x = 4</strong> after dividing <strong>3x = 9</strong> by 3.</p><label>What should the corrected final line be?<input value={repair} onChange={(event) => setRepair(event.target.value)} placeholder="x = ?" autoFocus /></label></div>}
-          {phase === 2 && <div className="response-box"><p>Explain what was wrong and why your repair works. Use your own words.</p><label>Your explanation<textarea value={explanation} onChange={(event) => setExplanation(event.target.value)} placeholder="The step was wrong because..." rows={6} autoFocus /></label><small>{explanation.trim() ? explanation.trim().split(/\s+/).length : 0} words · Aim for one clear thought</small></div>}
-          {phase === 3 && <div className="response-box final"><span className="no-hint">TRANSFER CHECK</span><p className="problem">Solve: <strong>4(y − 3) = 20</strong></p><label>Show your final answer<input placeholder="y = ?" /></label><label>One sentence: how did you solve it?<textarea rows={3} placeholder="First I..." /></label></div>}
-
-          {message && <div className={`coach-message ${message.startsWith('Not') || message.startsWith('Check') || message.startsWith('Add') ? 'try-again' : ''}`} role="status"><Icon name="✦" /><span>{message}</span></div>}
-          <div className="challenge-actions">
-            {phase < 3 && <button className="hint-button" onClick={useHint} disabled={hint >= 2}><Icon name="💡" />{hint >= 2 ? 'Hints used' : `Ask for hint (−${hint ? 10 : 5} XP)`}</button>}
-            {phase === 0 && <button className="button button-blue" disabled={selectedStep === null} onClick={checkStep}>LOCK IN STEP →</button>}
-            {phase === 1 && <button className="button button-blue" disabled={!repair} onClick={checkRepair}>TEST REPAIR →</button>}
-            {phase === 2 && <button className="button button-blue" disabled={!explanation} onClick={checkExplanation}>SUBMIT EXPLANATION →</button>}
-            {phase === 3 && <button className="button button-coral" onClick={() => setComplete(true)}>FINAL ATTACK <Icon name="ϟ" /></button>}
-          </div>
-          <p className="ownership-note"><Icon name="◉" /> You make every decision. AI coaches the process; the approved answer bank checks the math.</p>
+    <main className="page brain-quest-page">
+      <button className="back-button" onClick={goHome}>← Back to Brain City</button>
+      <div className="quest-heading"><div className={`quest-district-icon ${district.color}`}><Icon name={district.icon} /></div><div><span className="eyebrow">{district.name}</span><h1>{stage === 'grown' ? `${district.building} upgraded!` : 'Think first. Grow stronger.'}</h1></div></div>
+      {stage === 'grown' ? (
+        <section className="growth-result">
+          <div className={`upgrade-building ${district.color}`}><Icon name={district.icon} /><span>↑</span></div>
+          <span className="status-chip">DISTRICT GROWTH</span><h2>Your effort built something real.</h2><p>You earned growth for attempting, improving, and explaining—not just for being correct.</p>
+          <button className="button button-gold" onClick={goHome}>SEE YOUR CITY →</button>
         </section>
-      </div>
+      ) : (
+        <section className="learning-loop">
+          <aside>
+            <span className="eyebrow">LEARNING PATH</span>
+            {['Think', 'Attempt', 'Reflect', 'Grow'].map((item, index) => {
+              const active = ['think','attempt','reflect','grown'].indexOf(stage) >= index
+              return <span className={active ? 'active' : ''} key={item}><i>{active ? '✓' : index + 1}</i>{item}</span>
+            })}
+            <blockquote><strong>AI Coach</strong>{stage === 'think' ? content.think : 'I will guide your process, but the decision stays yours.'}</blockquote>
+          </aside>
+          <article className="learning-card">
+            {stage === 'think' && <><span className="eyebrow">THINK BEFORE ANSWERS</span><h2>{content.prompt}</h2><div className="think-pause"><Icon name="◎" /><div><strong>Take a thinking pause</strong><p>Build a strategy in your head before choices appear.</p></div></div><button className="button button-blue" onClick={() => setStage('attempt')}>I HAVE A STRATEGY →</button></>}
+            {stage === 'attempt' && <><span className="eyebrow">YOUR ATTEMPT</span><h2>{content.prompt}</h2><div className="answer-grid">{content.answers.map((item, index) => <button className={answer === index ? 'selected' : ''} onClick={() => setAnswer(index)} key={item}><span>{String.fromCharCode(65 + index)}</span>{item}</button>)}</div><button className="button button-blue" disabled={answer === null} onClick={checkAnswer}>CHECK MY THINKING →</button></>}
+            {stage === 'reflect' && <><span className="eyebrow">MAKE THINKING VISIBLE</span><h2>How did you decide?</h2><p>Explain your strategy in your own words. There is more than one good way to think.</p><textarea value={reflection} onChange={(event) => setReflection(event.target.value)} rows={6} placeholder="I noticed... so I decided..." autoFocus /><button className="button button-green" onClick={grow}>BUILD MY DISTRICT <Icon name="✦" /></button></>}
+            {message && <div className="coach-message" role="status"><Icon name="✦" /><span>{message}</span></div>}
+          </article>
+        </section>
+      )}
     </main>
   )
 }
 
 function App() {
   const [screen, setScreen] = useState<Screen>('academy')
+  const [activeDistrict, setActiveDistrict] = useState<DistrictId>('logic')
+  const [xp, setXp] = useState(() => Number(localStorage.getItem('brain-builder-xp')) || 450)
+  const [city, setCity] = useState<CityProgress>(() => {
+    const saved = localStorage.getItem('brain-builder-city')
+    return saved ? JSON.parse(saved) as CityProgress : { memory: 3, logic: 2, reading: 4, creativity: 1, curiosity: 1 }
+  })
+
+  useEffect(() => {
+    localStorage.setItem('brain-builder-city', JSON.stringify(city))
+    localStorage.setItem('brain-builder-xp', String(xp))
+  }, [city, xp])
+
+  const startQuest = (district: DistrictId) => {
+    setActiveDistrict(district)
+    setScreen('quests')
+  }
+  const completeQuest = (district: DistrictId, reward: number) => {
+    setCity((current) => ({ ...current, [district]: Math.min(current[district] + 1, 5) }))
+    setXp((current) => current + reward)
+  }
+
   return (
     <div className="app">
-      <Header />
-      {screen === 'academy' && <Academy startQuest={() => setScreen('quests')} />}
+      <Header xp={xp} />
+      {screen === 'academy' && <Academy city={city} startQuest={startQuest} />}
       {screen === 'library' && <Library />}
-      {screen === 'boss' && <Boss startQuest={() => setScreen('quests')} />}
-      {screen === 'quests' && <Quest goHome={() => setScreen('academy')} />}
+      {screen === 'boss' && <Boss startQuest={() => undefined} />}
+      {screen === 'quests' && <BrainQuest districtId={activeDistrict} onComplete={completeQuest} goHome={() => setScreen('academy')} />}
       <Nav screen={screen} onChange={setScreen} />
     </div>
   )
