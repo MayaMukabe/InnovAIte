@@ -38,10 +38,23 @@ const districts: Array<{ id: DistrictId; icon: string; name: string; building: s
   { id: 'curiosity', icon: 'curiosity', name: 'Curiosity District', building: 'Research Center', skill: 'Questions & discovery', color: 'purple', image: '/images/districts/research-center.webp' },
 ]
 
-const comicBooks: Array<{ id: ComicId; title: string; subtitle: string; image: string; source: string; reader: string; costs: number[]; rewards: string[] }> = [
-  { id: 'gearbound', title: 'Jujutsu Kaisen', subtitle: 'Gojo Satoru Collection', image: 'https://jujutsukaisen.jp/images/chara_category6/chara_detail1_2nd.png', source: 'https://jujutsukaisen.jp/character/category6.php', reader: 'https://mangaplus.shueisha.co.jp/titles/100034', costs: [120, 220, 340], rewards: ['Official manga pass', 'Gojo collector badge', 'Jujutsu shelf theme'] },
-  { id: 'skyLibrary', title: 'One Piece', subtitle: 'Gear 5 Luffy Collection', image: 'https://one-piece.com/img/figure/0425_101701101701-main.jpg', source: 'https://one-piece.com/figure/66345/index.html', reader: 'https://mangaplus.shueisha.co.jp/titles/100020', costs: [140, 240, 360], rewards: ['Official manga pass', 'Gear 5 collector badge', 'Grand Line shelf theme'] },
-  { id: 'starScouts', title: 'Classroom of the Elite', subtitle: 'Ayanokoji Collection', image: 'https://you-zitsu.com/1st/assets/character/1.png', source: 'https://you-zitsu.com/1st/character/', reader: 'https://www.penguinrandomhouse.com/series/S06/classroom-of-the-elite-manga/', costs: [160, 260, 380], rewards: ['Official manga page', 'Ayanokoji collector badge', 'Elite shelf theme'] },
+type MangaUnlock = { label: string; url: string; cost: number; format?: 'chapter' | 'volume' }
+const comicBooks: Array<{ id: ComicId; title: string; subtitle: string; image: string; source: string; unlocks: MangaUnlock[] }> = [
+  { id: 'gearbound', title: 'Jujutsu Kaisen', subtitle: 'Gojo Satoru Collection', image: 'https://jujutsukaisen.jp/images/chara_category6/chara_detail1_2nd.png', source: 'https://jujutsukaisen.jp/character/category6.php', unlocks: [
+    { label: 'Chapter 1', url: 'https://mangaplus.shueisha.co.jp/viewer/1001279', cost: 120 },
+    { label: 'Chapter 2', url: 'https://mangaplus.shueisha.co.jp/viewer/1001280', cost: 220 },
+    { label: 'Chapter 3', url: 'https://mangaplus.shueisha.co.jp/viewer/1001281', cost: 340 },
+  ] },
+  { id: 'skyLibrary', title: 'One Piece', subtitle: 'Gear 5 Luffy Collection', image: 'https://one-piece.com/img/figure/0425_101701101701-main.jpg', source: 'https://one-piece.com/figure/66345/index.html', unlocks: [
+    { label: 'Chapter 1', url: 'https://www.viz.com/shonenjump/one-piece-chapter-1/chapter/5090?action=read', cost: 140 },
+    { label: 'Chapter 2', url: 'https://www.viz.com/shonenjump/one-piece-chapter-2/chapter/5091?action=read', cost: 240 },
+    { label: 'Chapter 3', url: 'https://www.viz.com/shonenjump/one-piece-chapter-3/chapter/5092?action=read', cost: 360 },
+  ] },
+  { id: 'starScouts', title: 'Classroom of the Elite', subtitle: 'Ayanokoji Collection', image: 'https://you-zitsu.com/1st/assets/character/1.png', source: 'https://you-zitsu.com/1st/character/', unlocks: [
+    { label: 'Volume 1', url: 'https://sevenseasentertainment.com/books/classroom-of-the-elite-manga-vol-1/', cost: 160, format: 'volume' },
+    { label: 'Volume 2', url: 'https://sevenseasentertainment.com/books/classroom-of-the-elite-manga-vol-2/', cost: 260, format: 'volume' },
+    { label: 'Volume 3', url: 'https://sevenseasentertainment.com/books/classroom-of-the-elite-manga-vol-3/', cost: 380, format: 'volume' },
+  ] },
 ]
 
 const art = {
@@ -112,7 +125,7 @@ function Nav({ screen, onChange }: { screen: Screen; onChange: (screen: Screen) 
   )
 }
 
-function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: LearningStats; xp: number; startQuest: (district: DistrictId) => void }) {
+function Academy({ city, stats, xp, startQuest, onMaterialReward }: { city: CityProgress; stats: LearningStats; xp: number; startQuest: (district: DistrictId) => void; onMaterialReward: (xp: number) => void }) {
   const totalGrowth = Object.values(city).reduce((sum, value) => sum + value, 0)
   const recommended = districts.reduce((lowest, district) => city[district.id] < city[lowest.id] ? district : lowest, districts[0])
   const rank = rankForXP(xp)
@@ -193,6 +206,8 @@ function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: L
         </div>
       </section>
 
+      <MaterialStudio onReward={onMaterialReward} />
+
       <section className="dashboard-grid section">
         <article className="rank-card">
           <span className="eyebrow">CURRENT RANK</span>
@@ -232,36 +247,36 @@ function ComicShelf({ xp, progress, onUnlock }: { xp: number; progress: ComicPro
   const openComic = reading ? comicBooks.find((comic) => comic.id === reading.comic)! : null
   const unlock = (comic: typeof comicBooks[number]) => {
     const nextChapter = progress[comic.id]
-    const cost = comic.costs[nextChapter]
-    if (onUnlock(comic.id, cost)) setShopMessage(`${comic.title}: ${comic.rewards[nextChapter]} unlocked!`)
-    else setShopMessage(`You need ${cost - xp} more XP. Complete quests or defeat the Boss.`)
+    const reward = comic.unlocks[nextChapter]
+    if (onUnlock(comic.id, reward.cost)) setShopMessage(`${comic.title}: ${reward.label} unlocked!`)
+    else setShopMessage(`You need ${reward.cost - xp} more XP. Complete quests or defeat the Boss.`)
   }
 
   return (
     <section className="section comic-section">
       <div className="section-heading"><div><span className="eyebrow">SPEND THE XP YOU EARNED</span><h2>Manga rewards</h2></div><div className="comic-wallet"><Sparkles /><span>YOUR WALLET</span><strong>{xp} XP</strong></div></div>
-      <p className="catalog-note">Pure entertainment rewards—no quiz attached. Unlock a pass, then continue on the official licensed manga page.</p>
+      <p className="catalog-note">Pure entertainment rewards—no quiz attached. Spend XP to reveal one official chapter link at a time.</p>
       {shopMessage && <div className="shop-message" role="status"><Icon name="sparkles" />{shopMessage}</div>}
       <div className="comic-grid">{comicBooks.map((comic) => {
         const unlocked = progress[comic.id]
-        const complete = unlocked >= comic.rewards.length
+        const complete = unlocked >= comic.unlocks.length
         return <article className="comic-book" key={comic.id}>
-          <div className="comic-cover"><img src={comic.image} alt={`${comic.subtitle} official promotional artwork`} loading="lazy" referrerPolicy="no-referrer" /><span>{comic.subtitle}</span><h3>{comic.title}</h3><i>{unlocked}/{comic.rewards.length} REWARDS</i><a href={comic.source} target="_blank" rel="noreferrer">Official source ↗</a></div>
-          <div className="chapter-dots">{comic.rewards.map((reward, index) => <button disabled={index >= unlocked} className={index < unlocked ? 'open' : ''} onClick={() => setReading({ comic: comic.id, chapter: index })} key={reward}>{index < unlocked ? <BookOpen /> : '🔒'}<span>{reward}</span></button>)}</div>
-          {complete ? <button className="button button-green" onClick={() => setReading({ comic: comic.id, chapter: 0 })}>OPEN MANGA PASS</button> : <button className="button comic-unlock" onClick={() => unlock(comic)}>UNLOCK {comic.rewards[unlocked].toUpperCase()} · {comic.costs[unlocked]} XP</button>}
+          <div className="comic-cover"><img src={comic.image} alt={`${comic.subtitle} official promotional artwork`} loading="lazy" referrerPolicy="no-referrer" /><span>{comic.subtitle}</span><h3>{comic.title}</h3><i>{unlocked}/{comic.unlocks.length} UNLOCKED</i><a href={comic.source} target="_blank" rel="noreferrer">Official source ↗</a></div>
+          <div className="chapter-dots">{comic.unlocks.map((reward, index) => <button disabled={index >= unlocked} className={index < unlocked ? 'open' : ''} onClick={() => setReading({ comic: comic.id, chapter: index })} key={reward.label}>{index < unlocked ? <BookOpen /> : '🔒'}<span>{reward.label}</span></button>)}</div>
+          {complete ? <button className="button button-green" onClick={() => setReading({ comic: comic.id, chapter: unlocked - 1 })}>OPEN LATEST UNLOCK</button> : <button className="button comic-unlock" onClick={() => unlock(comic)}>UNLOCK {comic.unlocks[unlocked].label.toUpperCase()} · {comic.unlocks[unlocked].cost} XP</button>}
         </article>
       })}</div>
-      {reading && openComic && <div className="reader-backdrop" role="dialog" aria-modal="true" aria-label={`${openComic.title} reward unlocked`} onClick={() => setReading(null)}><article className="comic-reader reward-reader" onClick={(event) => event.stopPropagation()}><button className="reader-close" onClick={() => setReading(null)}>×</button><img src={openComic.image} alt="" referrerPolicy="no-referrer" /><div><span className="eyebrow">MANGA REWARD UNLOCKED</span><h2>{openComic.rewards[reading.chapter]}</h2><p>You earned this with your Brain Builder XP. There is no lesson or assessment here—enjoy your reward.</p><small>Reading availability, region restrictions, and subscriptions are controlled by the official publisher.</small><a className="button button-gold" href={openComic.reader} target="_blank" rel="noreferrer">OPEN OFFICIAL MANGA PAGE ↗</a></div></article></div>}
+      {reading && openComic && <div className="reader-backdrop" role="dialog" aria-modal="true" aria-label={`${openComic.title} reward unlocked`} onClick={() => setReading(null)}><article className="comic-reader reward-reader" onClick={(event) => event.stopPropagation()}><button className="reader-close" onClick={() => setReading(null)}>×</button><img src={openComic.image} alt="" referrerPolicy="no-referrer" /><div><span className="eyebrow">MANGA REWARD UNLOCKED</span><h2>{openComic.unlocks[reading.chapter].label}</h2><p>You earned this with your Brain Builder XP. There is no lesson or assessment here—enjoy your reward.</p><small>{openComic.unlocks[reading.chapter].format === 'volume' ? 'This publisher provides official volume pages rather than individual chapter readers. ' : ''}Reading availability, region restrictions, and subscriptions are controlled by the official publisher.</small><a className="button button-gold" href={openComic.unlocks[reading.chapter].url} target="_blank" rel="noreferrer">OPEN OFFICIAL {openComic.unlocks[reading.chapter].format === 'volume' ? 'VOLUME PAGE' : 'CHAPTER'} ↗</a></div></article></div>}
     </section>
   )
 }
 
-function Library({ xp, comics, onUnlock, onMaterialReward }: { xp: number; comics: ComicProgress; onUnlock: (comic: ComicId, cost: number) => boolean; onMaterialReward: (xp: number) => void }) {
+function Library({ xp, comics, onUnlock }: { xp: number; comics: ComicProgress; onUnlock: (comic: ComicId, cost: number) => boolean }) {
   return (
     <main className="page library-page">
       <section className="library-hero">
-        <div><span className="eyebrow">TRAINING + REWARDS</span><h1>Hero Library</h1><p>Study from your own materials, then spend the XP you earn on manga rewards.</p>
-          <label className="search"><Icon name="⌕" /><input aria-label="Search library" placeholder="Search study sets or manga rewards" /><span>⌘ K</span></label>
+        <div><span className="eyebrow">EARNED ENTERTAINMENT</span><h1>Hero Library</h1><p>Spend the XP you earn in Academy missions on one official manga unlock at a time.</p>
+          <label className="search"><Icon name="⌕" /><input aria-label="Search library" placeholder="Search manga rewards" /><span>⌘ K</span></label>
           <blockquote><strong>Haru · Reward Captain</strong>“Build your mind in missions. Spend your hard-earned XP here—you earned the break.”</blockquote>
         </div>
         <img src="/images/characters/hero-guide.webp" alt="Haru, Hero Academy Reward Captain" />
@@ -273,7 +288,6 @@ function Library({ xp, comics, onUnlock, onMaterialReward }: { xp: number; comic
           <article className="recent-card"><div className="ring ring-blue">30%</div><div><h3>Logic Lab</h3><p>Level 1 · Boolean reasoning</p><button className="small-button">Resume →</button></div></article>
         </div>
       </section>
-      <MaterialStudio onReward={onMaterialReward} />
       <ComicShelf xp={xp} progress={comics} onUnlock={onUnlock} />
       <section className="section subject-archives">
         <div className="section-heading"><div><span className="eyebrow">EXPLORE BY SKILL</span><h2>Subject archives</h2></div></div>
@@ -635,8 +649,8 @@ function App() {
   return (
     <div className="app">
       <Header xp={xp} learnerBand={learnerBand} onBandChange={setLearnerBand} syncStatus={syncStatus} />
-      {screen === 'academy' && <Academy city={city} stats={stats} xp={xp} startQuest={startQuest} />}
-      {screen === 'library' && <Library xp={xp} comics={comics} onUnlock={unlockComic} onMaterialReward={completeMaterial} />}
+      {screen === 'academy' && <Academy city={city} stats={stats} xp={xp} startQuest={startQuest} onMaterialReward={completeMaterial} />}
+      {screen === 'library' && <Library xp={xp} comics={comics} onUnlock={unlockComic} />}
       {screen === 'boss' && <GlitchBoss onReward={completeBoss} />}
       {screen === 'quests' && <BrainQuest districtId={activeDistrict} learnerBand={learnerBand} onComplete={completeQuest} goHome={() => setScreen('academy')} />}
       <Nav screen={screen} onChange={setScreen} />
