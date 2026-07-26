@@ -5,12 +5,12 @@ type Screen = 'academy' | 'quests' | 'boss' | 'library'
 type DistrictId = 'memory' | 'logic' | 'reading' | 'creativity' | 'curiosity'
 type CityProgress = Record<DistrictId, number>
 
-const districts: Array<{ id: DistrictId; icon: string; name: string; building: string; skill: string; color: string }> = [
-  { id: 'memory', icon: '▤', name: 'Memory District', building: 'Grand Library', skill: 'Recall & retention', color: 'green' },
-  { id: 'logic', icon: '⚙', name: 'Logic District', building: 'Engineering Lab', skill: 'Reasoning & math', color: 'blue' },
-  { id: 'reading', icon: '▥', name: 'Reading District', building: 'Knowledge Tower', skill: 'Comprehension', color: 'yellow' },
-  { id: 'creativity', icon: '✦', name: 'Creativity District', building: 'Art Studio', skill: 'Ideas & expression', color: 'coral' },
-  { id: 'curiosity', icon: '⌕', name: 'Curiosity District', building: 'Research Center', skill: 'Questions & discovery', color: 'purple' },
+const districts: Array<{ id: DistrictId; icon: string; name: string; building: string; skill: string; color: string; image: string }> = [
+  { id: 'memory', icon: '▤', name: 'Memory District', building: 'Grand Library', skill: 'Recall & retention', color: 'green', image: '/images/districts/grand-library.webp' },
+  { id: 'logic', icon: '⚙', name: 'Logic District', building: 'Engineering Lab', skill: 'Reasoning & math', color: 'blue', image: '/images/districts/engineering-lab.webp' },
+  { id: 'reading', icon: '▥', name: 'Reading District', building: 'Knowledge Tower', skill: 'Comprehension', color: 'yellow', image: '/images/districts/knowledge-tower.webp' },
+  { id: 'creativity', icon: '✦', name: 'Creativity District', building: 'Art Studio', skill: 'Ideas & expression', color: 'coral', image: '/images/districts/art-studio.webp' },
+  { id: 'curiosity', icon: '⌕', name: 'Curiosity District', building: 'Research Center', skill: 'Questions & discovery', color: 'purple', image: '/images/districts/research-center.webp' },
 ]
 
 const art = {
@@ -83,11 +83,12 @@ function Academy({ city, startQuest }: { city: CityProgress; startQuest: (distri
       <section className="section city-section">
         <div className="section-heading"><div><span className="eyebrow">YOUR MIND, MADE VISIBLE</span><h2>Brain City</h2></div><strong className="city-score">{totalGrowth} growth points</strong></div>
         <div className="brain-city">
+          <div className="city-weather"><span>☀ MIND CITY · CLEAR</span><strong>Curiosity powers everything</strong></div>
           <div className="city-skyline" aria-label="Your growing virtual brain city">
             {districts.map((district) => (
               <button className={`city-building ${district.color}`} onClick={() => startQuest(district.id)} key={district.id}>
                 <span className="building-level">LV {city[district.id]}</span>
-                <span className="building-shape" style={{ height: `${76 + city[district.id] * 14}px` }}><Icon name={district.icon} /></span>
+                <span className="building-shape" style={{ height: `${132 + city[district.id] * 9}px` }}><img src={district.image} alt="" /><i>{district.icon}</i></span>
                 <strong>{district.building}</strong><small>{district.skill}</small>
               </button>
             ))}
@@ -99,8 +100,9 @@ function Academy({ city, startQuest }: { city: CityProgress; startQuest: (distri
       <section className="section">
         <div className="section-heading"><div><span className="eyebrow">CHOOSE WHAT TO GROW</span><h2>City districts</h2></div></div>
         <div className="sector-grid">
-          {districts.slice(0, 3).map((district) => (
+          {districts.map((district) => (
             <article className={`sector-card ${district.color}`} key={district.id}>
+              <img className="district-card-art" src={district.image} alt={`${district.building} illustrated district`} />
               <div className="sector-icon"><Icon name={district.icon} /></div>
               <span className="status-chip">LEVEL {city[district.id]}</span>
               <h3>{district.name}</h3><p>Upgrade your {district.building} through {district.skill.toLowerCase()} challenges.</p>
@@ -303,7 +305,7 @@ function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId
       <div className="quest-heading"><div className={`quest-district-icon ${district.color}`}><Icon name={district.icon} /></div><div><span className="eyebrow">{district.name}</span><h1>{stage === 'grown' ? `${district.building} upgraded!` : 'Think first. Grow stronger.'}</h1></div></div>
       {stage === 'grown' ? (
         <section className="growth-result">
-          <div className={`upgrade-building ${district.color}`}><Icon name={district.icon} /><span>↑</span></div>
+          <div className={`upgrade-building ${district.color}`}><img src={district.image} alt={`${district.building} upgraded`} /><span>↑</span></div>
           <span className="status-chip">DISTRICT GROWTH</span><h2>Your effort built something real.</h2><p>You earned growth for attempting, improving, and explaining—not just for being correct.</p>
           <button className="button button-gold" onClick={goHome}>SEE YOUR CITY →</button>
         </section>
