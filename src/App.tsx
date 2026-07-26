@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { bossDamage, bossReward, canAfford, nextComicChapter, nextDistrictLevel, questReward } from './gameLogic'
 import MaterialStudio from './MaterialStudio'
+import { loadProfile, saveProfile } from './api'
 
 type Screen = 'academy' | 'quests' | 'boss' | 'library'
 type DistrictId = 'memory' | 'logic' | 'reading' | 'creativity' | 'curiosity'
@@ -69,14 +70,14 @@ const Icon = ({ name }: { name: string }) => {
   return <Component className="icon" aria-hidden="true" strokeWidth={2.4} />
 }
 
-function Header({ xp }: { xp: number }) {
+function Header({ xp, syncStatus }: { xp: number; syncStatus: 'loading' | 'synced' | 'offline' }) {
   return (
     <header className="topbar">
       <div className="brand">
         <img src={art.avatar} alt="" />
         <div><strong>HERO</strong><span>ACADEMY</span></div>
       </div>
-      <div className="level-pill"><Icon name="✦" /><span>LEVEL {Math.floor(xp / 200) + 1}</span><strong>{xp} XP</strong></div>
+      <div className="header-progress"><span className={`sync-chip ${syncStatus}`}><i />{syncStatus === 'loading' ? 'Connecting' : syncStatus === 'synced' ? 'Progress synced' : 'Offline mode'}</span><div className="level-pill"><Icon name="✦" /><span>LEVEL {Math.floor(xp / 200) + 1}</span><strong>{xp} XP</strong></div></div>
     </header>
   )
 }
@@ -457,6 +458,8 @@ function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId
 
 function App() {
   const [screen, setScreen] = useState<Screen>('academy')
+  const [syncStatus, setSyncStatus] = useState<'loading' | 'synced' | 'offline'>('loading')
+  const [syncReady, setSyncReady] = useState(false)
   const [activeDistrict, setActiveDistrict] = useState<DistrictId>('logic')
   const [xp, setXp] = useState(() => Number(localStorage.getItem('brain-builder-xp')) || 450)
   const [city, setCity] = useState<CityProgress>(() => {
@@ -478,6 +481,37 @@ function App() {
     localStorage.setItem('brain-builder-stats', JSON.stringify(stats))
     localStorage.setItem('brain-builder-comics', JSON.stringify(comics))
   }, [city, comics, stats, xp])
+
+  useEffect(() => {
+    loadProfile()
+      .then((profile) => {
+        if (profile) {
+          setXp(profile.xp)
+          setCity({ memory: 1, logic: 1, reading: 1, creativity: 1, curiosity: 1, ...profile.city } as CityProgress)
+          setStats({
+            questsCompleted: profile.stats.questsCompleted ?? 0,
+            firstTryWins: profile.stats.firstTryWins ?? 0,
+            reflectionsWritten: profile.stats.reflectionsWritten ?? 0,
+            bossWins: profile.stats.bossWins ?? 0,
+            bestBossTime: profile.stats.bestBossTime ?? 0,
+          })
+          setComics({ gearbound: 0, skyLibrary: 0, starScouts: 0, ...profile.comics } as ComicProgress)
+        }
+        setSyncStatus('synced')
+      })
+      .catch(() => setSyncStatus('offline'))
+      .finally(() => setSyncReady(true))
+  }, [])
+
+  useEffect(() => {
+    if (!syncReady) return
+    const sync = window.setTimeout(() => {
+      saveProfile({ xp, city, stats, comics })
+        .then(() => setSyncStatus('synced'))
+        .catch(() => setSyncStatus('offline'))
+    }, 500)
+    return () => window.clearTimeout(sync)
+  }, [city, comics, stats, syncReady, xp])
 
   const startQuest = (district: DistrictId) => {
     setActiveDistrict(district)
@@ -510,7 +544,7 @@ function App() {
 
   return (
     <div className="app">
-      <Header xp={xp} />
+      <Header xp={xp} syncStatus={syncStatus} />
       {screen === 'academy' && <Academy city={city} stats={stats} xp={xp} startQuest={startQuest} />}
       {screen === 'library' && <Library xp={xp} comics={comics} onUnlock={unlockComic} onMaterialReward={(reward) => setXp((current) => current + reward)} />}
       {screen === 'boss' && <GlitchBoss onReward={completeBoss} />}

@@ -12,9 +12,25 @@ const app = express()
 const port = Number(process.env.PORT) || 8787
 const profileSchema = z.object({
   xp: z.number().int().min(0).max(1_000_000),
-  city: z.record(z.string(), z.number().int().min(1).max(5)),
-  stats: z.record(z.string(), z.number().int().min(0)),
-  comics: z.record(z.string(), z.number().int().min(0).max(3)),
+  city: z.object({
+    memory: z.number().int().min(1).max(5),
+    logic: z.number().int().min(1).max(5),
+    reading: z.number().int().min(1).max(5),
+    creativity: z.number().int().min(1).max(5),
+    curiosity: z.number().int().min(1).max(5),
+  }),
+  stats: z.object({
+    questsCompleted: z.number().int().min(0),
+    firstTryWins: z.number().int().min(0),
+    reflectionsWritten: z.number().int().min(0),
+    bossWins: z.number().int().min(0),
+    bestBossTime: z.number().int().min(0),
+  }),
+  comics: z.object({
+    gearbound: z.number().int().min(0).max(3),
+    skyLibrary: z.number().int().min(0).max(3),
+    starScouts: z.number().int().min(0).max(3),
+  }),
 })
 
 app.disable('x-powered-by')
