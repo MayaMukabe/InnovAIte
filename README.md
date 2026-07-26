@@ -39,6 +39,7 @@ npm run test     # Run automated game-rule tests
 npm run build    # Type-check and create a production build
 npm run build:server # Type-check the API
 npm run preview  # Preview the production build locally
+npm run record:demo # Record the running prototype and backup screenshot
 ```
 
 ## Technology
@@ -60,11 +61,20 @@ Progress syncs to Express and is cached in `localStorage` for offline resilience
 - [Architecture](docs/ARCHITECTURE.md)
 - [Responsible AI](docs/RESPONSIBLE_AI.md)
 - [Plain-language code logic](logic.md)
-- [Hackathon demo guide](docs/DEMO.md)
+- [2:30 hackathon pitch and demo](docs/DEMO.md)
+- [Mentor check-in answers](docs/MENTOR_CHECKIN.md)
+- [Presentation-day checklist](docs/PRESENTATION_CHECKLIST.md)
 - [Visual asset provenance](docs/ASSETS.md)
 - [API contract](docs/API.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
+
+## Presentation backups
+
+- [Recorded prototype walkthrough](demo/brain-builder-demo.webm)
+- [Boss victory backup screenshot](demo/brain-builder-backup.png)
+
+Start the app, then run `npm run record:demo` to regenerate both assets after product changes.
 
 ## Project status
 
