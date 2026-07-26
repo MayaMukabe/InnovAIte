@@ -38,10 +38,10 @@ const districts: Array<{ id: DistrictId; icon: string; name: string; building: s
   { id: 'curiosity', icon: 'curiosity', name: 'Curiosity District', building: 'Research Center', skill: 'Questions & discovery', color: 'purple', image: '/images/districts/research-center.webp' },
 ]
 
-const comicBooks: Array<{ id: ComicId; title: string; subtitle: string; theme: string; mark: string; costs: number[]; chapters: string[] }> = [
-  { id: 'gearbound', title: 'Gearbound', subtitle: 'Inventors of the Open Sky', theme: 'cobalt', mark: 'G', costs: [120, 220, 340], chapters: ['The impossible engine wakes above Logic City.', 'A broken compass forces the crew to reason from clues.', 'The inventors combine their designs to cross the storm wall.'] },
-  { id: 'skyLibrary', title: 'The Sky Library', subtitle: 'Pages Beyond the Clouds', theme: 'sunrise', mark: 'S', costs: [140, 240, 360], chapters: ['A living book chooses Maya for a hidden reading quest.', 'Missing pages rearrange the tower—and every detail matters.', 'Maya must explain the final riddle to open the sunrise archive.'] },
-  { id: 'starScouts', title: 'Star Scouts', subtitle: 'The Curiosity Signal', theme: 'violet', mark: '★', costs: [160, 260, 380], chapters: ['Three research scouts detect a flower-shaped signal in space.', 'Their first hypothesis fails, revealing a better question.', 'The team follows the evidence to a moon that grows starlight.'] },
+const comicBooks: Array<{ id: ComicId; title: string; subtitle: string; image: string; source: string; costs: number[]; chapters: string[] }> = [
+  { id: 'gearbound', title: 'Jujutsu Kaisen', subtitle: 'Gojo Satoru Spotlight', image: 'https://jujutsukaisen.jp/images/chara_category6/chara_detail1_2nd.png', source: 'https://jujutsukaisen.jp/character/category6.php', costs: [120, 220, 340], chapters: ['Reading the strongest character archetype.', 'How confidence changes a conflict.', 'Reflection mission: power and responsibility.'] },
+  { id: 'skyLibrary', title: 'One Piece', subtitle: 'Gear 5 Luffy Spotlight', image: 'https://one-piece.com/img/figure/0425_101701101701-main.jpg', source: 'https://one-piece.com/figure/66345/index.html', costs: [140, 240, 360], chapters: ['Reading visual clues in Gear 5.', 'How playfulness changes a battle.', 'Reflection mission: freedom and persistence.'] },
+  { id: 'starScouts', title: 'Classroom of the Elite', subtitle: 'Ayanokoji Spotlight', image: 'https://you-zitsu.com/1st/assets/character/1.png', source: 'https://you-zitsu.com/1st/character/', costs: [160, 260, 380], chapters: ['Reading a strategic protagonist.', 'Evidence, assumptions, and hidden motives.', 'Reflection mission: strategy and trust.'] },
 ]
 
 const art = {
@@ -239,18 +239,19 @@ function ComicShelf({ xp, progress, onUnlock }: { xp: number; progress: ComicPro
 
   return (
     <section className="section comic-section">
-      <div className="comic-banner"><div><span className="eyebrow">XP REWARD SHOP</span><h2>Adventure Comics</h2><p>Your learning powers the next chapter. Spend XP you earn—never real money.</p></div><div className="comic-wallet"><Sparkles /><span>YOUR WALLET</span><strong>{xp} XP</strong></div></div>
+      <div className="section-heading"><div><span className="eyebrow">XP REWARD CATALOG</span><h2>Trending comic spotlights</h2></div><div className="comic-wallet"><Sparkles /><span>YOUR WALLET</span><strong>{xp} XP</strong></div></div>
+      <p className="catalog-note">Unlock original reading and reflection missions inspired by popular series. Artwork links to official franchise pages; commercial use requires a license.</p>
       {shopMessage && <div className="shop-message" role="status"><Icon name="sparkles" />{shopMessage}</div>}
       <div className="comic-grid">{comicBooks.map((comic) => {
         const unlocked = progress[comic.id]
         const complete = unlocked >= comic.chapters.length
         return <article className="comic-book" key={comic.id}>
-          <div className={`comic-cover ${comic.theme}`} aria-label={`${comic.title} graphic cover`}><b aria-hidden="true">{comic.mark}</b><span>{comic.subtitle}</span><h3>{comic.title}</h3><i>{unlocked}/{comic.chapters.length} CHAPTERS</i></div>
-          <div className="chapter-dots">{comic.chapters.map((_, index) => <button disabled={index >= unlocked} className={index < unlocked ? 'open' : ''} onClick={() => setReading({ comic: comic.id, chapter: index })} key={index}>{index < unlocked ? <BookOpen /> : '🔒'}<span>Ch. {index + 1}</span></button>)}</div>
+          <div className="comic-cover"><img src={comic.image} alt={`${comic.subtitle} official promotional artwork`} loading="lazy" referrerPolicy="no-referrer" /><span>{comic.subtitle}</span><h3>{comic.title}</h3><i>{unlocked}/{comic.chapters.length} MISSIONS</i><a href={comic.source} target="_blank" rel="noreferrer">Official source ↗</a></div>
+          <div className="chapter-dots">{comic.chapters.map((_, index) => <button disabled={index >= unlocked} className={index < unlocked ? 'open' : ''} onClick={() => setReading({ comic: comic.id, chapter: index })} key={index}>{index < unlocked ? <BookOpen /> : '🔒'}<span>Mission {index + 1}</span></button>)}</div>
           {complete ? <button className="button button-green" onClick={() => setReading({ comic: comic.id, chapter: unlocked - 1 })}>READ COLLECTION</button> : <button className="button comic-unlock" onClick={() => unlock(comic)}>UNLOCK CHAPTER {unlocked + 1} · {comic.costs[unlocked]} XP</button>}
         </article>
       })}</div>
-      {reading && openComic && <div className="reader-backdrop" role="dialog" aria-modal="true" aria-label={`${openComic.title} chapter ${reading.chapter + 1}`} onClick={() => setReading(null)}><article className="comic-reader" onClick={(event) => event.stopPropagation()}><button className="reader-close" onClick={() => setReading(null)}>×</button><aside className={`reader-title-card ${openComic.theme}`}><b>{openComic.mark}</b><strong>{openComic.title}</strong><span>{openComic.subtitle}</span></aside><div><span className="eyebrow">{openComic.title.toUpperCase()} · CHAPTER {reading.chapter + 1}</span><h2>{openComic.chapters[reading.chapter]}</h2><p>The city shimmered beneath the clouds as the young heroes faced a problem no machine could solve for them. They gathered the clues, shared their ideas, and tested the first plan.</p><p>When that plan failed, they did not ask for an instant answer. They looked again, noticed what had changed, and built a stronger explanation together.</p><blockquote>“A wrong attempt isn’t wasted,” Spark said. “It gives your next idea somewhere to begin.”</blockquote><button className="button button-gold" onClick={() => setReading(null)}>BOOKMARK & CLOSE</button></div></article></div>}
+      {reading && openComic && <div className="reader-backdrop" role="dialog" aria-modal="true" aria-label={`${openComic.title} mission ${reading.chapter + 1}`} onClick={() => setReading(null)}><article className="comic-reader" onClick={(event) => event.stopPropagation()}><button className="reader-close" onClick={() => setReading(null)}>×</button><img src={openComic.image} alt="" referrerPolicy="no-referrer" /><div><span className="eyebrow">{openComic.title.toUpperCase()} · READING MISSION {reading.chapter + 1}</span><h2>{openComic.chapters[reading.chapter]}</h2><p>Study the character and scene details. What does the creator want you to notice first, and which visual evidence supports your interpretation?</p><p>Build an explanation before comparing it with a friend or teacher. Strong readers separate what the image shows from what they assume.</p><blockquote>“Your evidence is your superpower,” Spark said. “Point to the clue that changed your mind.”</blockquote><a className="button button-blue" href={openComic.source} target="_blank" rel="noreferrer">VISIT OFFICIAL SERIES PAGE ↗</a></div></article></div>}
     </section>
   )
 }
@@ -262,8 +263,19 @@ function Library({ xp, comics, onUnlock, onMaterialReward }: { xp: number; comic
         <span className="eyebrow">TRAINING ARCHIVE</span><h1>Hero Library</h1><p>Practice from trusted materials and explore new skill scrolls.</p>
         <label className="search"><Icon name="⌕" /><input aria-label="Search library" placeholder="Search techniques, topics, or subjects" /><span>⌘ K</span></label>
       </section>
-      <ComicShelf xp={xp} progress={comics} onUnlock={onUnlock} />
+      <section className="section">
+        <div className="section-heading"><div><span className="eyebrow">PICK UP WHERE YOU LEFT OFF</span><h2>Recent study</h2></div></div>
+        <div className="recent-grid">
+          <article className="recent-card"><div className="ring">75%</div><div><h3>Algebra Alchemy</h3><p>Chapter 4 · Linear equations</p><button className="small-button">Resume →</button></div></article>
+          <article className="recent-card"><div className="ring ring-blue">30%</div><div><h3>Logic Lab</h3><p>Level 1 · Boolean reasoning</p><button className="small-button">Resume →</button></div></article>
+        </div>
+      </section>
       <MaterialStudio onReward={onMaterialReward} />
+      <ComicShelf xp={xp} progress={comics} onUnlock={onUnlock} />
+      <section className="section subject-archives">
+        <div className="section-heading"><div><span className="eyebrow">EXPLORE BY SKILL</span><h2>Subject archives</h2></div></div>
+        <div><button><Cog /> Math mastery</button><button><Brain /> Memory lab</button><button><BookOpen /> Reading craft</button><button><Palette /> Creative studio</button><button><Telescope /> Research skills</button></div>
+      </section>
     </main>
   )
 }
