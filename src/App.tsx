@@ -40,12 +40,12 @@ const districts: Array<{ id: DistrictId; icon: string; name: string; building: s
 
 type MangaUnlock = { label: string; url: string; cost: number; format?: 'chapter' | 'volume' }
 const comicBooks: Array<{ id: ComicId; title: string; subtitle: string; image: string; source: string; unlocks: MangaUnlock[] }> = [
-  { id: 'skyLibrary', title: 'One Piece', subtitle: 'Gear 5 Luffy Collection', image: 'https://img.ixbt.site/live/images/original/16/95/46/2025/08/19/99813c56a3.png?w=877', source: 'https://one-piece.com/', unlocks: [
+  { id: 'skyLibrary', title: 'One Piece', subtitle: 'Gear 5 Luffy Collection', image: '/images/manga/one-piece-gear-5.png', source: 'https://one-piece.com/', unlocks: [
     { label: 'Chapter 1', url: 'https://www.viz.com/shonenjump/one-piece-chapter-1/chapter/5090?action=read', cost: 140 },
     { label: 'Chapter 2', url: 'https://www.viz.com/shonenjump/one-piece-chapter-2/chapter/5091?action=read', cost: 240 },
     { label: 'Chapter 3', url: 'https://www.viz.com/shonenjump/one-piece-chapter-3/chapter/5092?action=read', cost: 360 },
   ] },
-  { id: 'gearbound', title: 'Jujutsu Kaisen', subtitle: 'Gojo Satoru Collection', image: 'https://www.animeclick.it/prove/img_tmp/202209/765b31b47db31884ab90e2caeba74673.jpg', source: 'https://jujutsukaisen.jp/', unlocks: [
+  { id: 'gearbound', title: 'Jujutsu Kaisen', subtitle: 'Gojo Satoru Collection', image: '/images/manga/jjk-gojo.png', source: 'https://jujutsukaisen.jp/', unlocks: [
     { label: 'Chapter 1', url: 'https://mangaplus.shueisha.co.jp/viewer/1001279', cost: 120 },
     { label: 'Chapter 2', url: 'https://mangaplus.shueisha.co.jp/viewer/1001280', cost: 220 },
     { label: 'Chapter 3', url: 'https://mangaplus.shueisha.co.jp/viewer/1001281', cost: 340 },
@@ -266,7 +266,7 @@ function ComicShelf({ xp, progress, onUnlock }: { xp: number; progress: ComicPro
         const unlocked = progress[comic.id]
         const complete = unlocked >= comic.unlocks.length
         return <article className="comic-book" data-comic={comic.id} key={comic.id}>
-          <div className="comic-cover"><img src={comic.image} alt={`${comic.subtitle} official promotional artwork`} loading="lazy" referrerPolicy="no-referrer" /><span>{comic.subtitle}</span><h3>{comic.title}</h3><i>{unlocked}/{comic.unlocks.length} UNLOCKED</i><a href={comic.source} target="_blank" rel="noreferrer">Official source ↗</a></div>
+          <div className="comic-cover"><img src={comic.image} alt={`${comic.subtitle} anime artwork`} loading="lazy" referrerPolicy="no-referrer" /><span>{comic.subtitle}</span><h3>{comic.title}</h3><i>{unlocked}/{comic.unlocks.length} UNLOCKED</i><a href={comic.source} target="_blank" rel="noreferrer">Official source ↗</a></div>
           <div className="chapter-dots">{comic.unlocks.map((reward, index) => <button disabled={index >= unlocked} className={index < unlocked ? 'open' : ''} onClick={() => setReading({ comic: comic.id, chapter: index })} key={reward.label}>{index < unlocked ? <BookOpen /> : '🔒'}<span>{reward.label}</span></button>)}</div>
           {complete ? <button className="button button-green" onClick={() => setReading({ comic: comic.id, chapter: unlocked - 1 })}>OPEN LATEST UNLOCK</button> : <button className="button comic-unlock" onClick={() => unlock(comic)}>UNLOCK {comic.unlocks[unlocked].label.toUpperCase()} · {comic.unlocks[unlocked].cost} XP</button>}
         </article>
