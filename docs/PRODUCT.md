@@ -29,7 +29,7 @@ Brain Builder makes cognitive growth visible. Every effortful learning activity 
 | Memory and retention | Grand Library |
 | Logic, math, and reasoning | Engineering Lab |
 | Reading and comprehension | Knowledge Tower |
-| Creativity and expression | Art Studio |
+| Creativity and expression | Imagination Forge |
 | Curiosity and investigation | Research Center |
 
 ## Glitch Boss loop
@@ -45,18 +45,21 @@ Included:
 - Distinct challenges for memory, logic, reading, creativity, and curiosity
 - Independent timed Boss Battle with HP, damage, combo, and time penalties
 - Deterministic correctness from local reviewed content
-- Browser-only XP and city progression
+- Local-first XP and city progression with API synchronization
 - Adaptive recommendations for the lowest-level district
-- Mindprint, effort evidence, achievements, and best Boss time
+- Real activity-based streak, rank, Mindprint, achievements, and best Boss time
 - Learner-controlled progress export with no response text
 - Original local artwork for all five districts
+- Material Studio for source-grounded learning and assessment from TXT, Markdown, or PDF
+- XP Comic Shop with persistent unlocks and chapter reading
+- Validated Express API with reviewed question checks and prototype persistence
 
 Not yet included:
 
-- Accounts, persistence, educator dashboards, or analytics
+- Authentication, household/classroom accounts, educator dashboards, or production analytics
 - Production AI integration
-- Reviewed question-bank service
-- File uploads or content ingestion
+- Full reviewed content-management service
+- OCR, image ingestion, malware scanning, and large-document processing
 - Classroom privacy and compliance controls
 
 ## Success measures
@@ -71,4 +74,4 @@ Raw time-on-task and total clicks should not be treated as learning outcomes.
 
 ## Privacy-first progress sharing
 
-Progress remains on the learner’s device. Export is explicit and learner controlled. The report contains XP, district levels, and aggregate evidence totals; it excludes answer selections and written reflections.
+Progress is cached on-device and synchronized to a local prototype API. Export is explicit and learner controlled. It excludes answer selections and written reflections. Identity, authorization, consent, deletion, and retention controls are required before use with real student data.

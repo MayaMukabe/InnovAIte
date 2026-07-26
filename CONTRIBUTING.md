@@ -4,7 +4,7 @@
 
 1. Create a focused branch from `main`.
 2. Keep changes small and product-scoped.
-3. Run `npm run lint`, `npm run test`, and `npm run build`.
+3. Run `npm run build:server`, `npm run lint`, `npm run test`, and `npm run build`.
 4. Document user-facing or architectural changes.
 5. Open a pull request describing purpose, screenshots, checks, accessibility impact, and responsible-AI impact.
 

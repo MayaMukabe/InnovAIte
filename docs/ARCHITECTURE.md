@@ -2,50 +2,57 @@
 
 ## Overview
 
-Brain Builder is currently a client-only React single-page application. `src/App.tsx` contains the prototype screens, reviewed content, city progression, learning state machine, and boss combat engine. `src/styles.css` contains the visual system and responsive behavior.
+Brain Builder is a local-first React and Express application. The client owns interaction state and offline cache; the API owns persisted profiles, reviewed question checks, material extraction, and grounded study sets.
 
 ```text
 Browser
-├── App shell
-│   ├── Header
-│   └── Primary navigation
-├── Brain City
-│   └── District quest state machine
-│       ├── Think
-│       ├── Attempt
-│       ├── Reflect
-│       └── Grow
-├── Glitch Boss
-│   ├── Countdown timer
-│   ├── Question and attack engine
-│   └── Victory / timeout result
-└── Library
+├── Academy and illustrated Brain City
+├── District quest state machine
+│   └── Think → Attempt → Reflect → Grow
+├── Timed Glitch Boss combat
+├── XP comic shop and reader
+└── Material Studio
+    ├── Upload
+    ├── Learn cards
+    └── Source-grounded assessment
+
+Express API
+├── Health and version
+├── Validated profile persistence
+├── Reviewed question delivery
+├── Server-side answer checks
+└── Material extraction and study-set storage
 ```
 
-## Design decisions
+## Key decisions
 
-- Local React state keeps the prototype inspectable and dependency-light.
-- Mathematical checks are deterministic rather than model-generated.
-- The Boss timer is created and cleaned up with a React effect.
-- XP and district levels use `localStorage` so progress survives refreshes.
-- Aggregate evidence metrics use the same device-only persistence boundary.
-- The recommendation is computed from the district with the lowest level.
-- Export creates a temporary in-browser JSON Blob and revokes its URL.
-- District art is optimized local WebP under `public/images/districts`.
-- Navigation avoids a router while the screen set remains small.
-- Plain CSS exposes all design tokens and avoids runtime styling overhead.
-- Reduced-motion preferences are respected globally.
+- React state keeps each game loop explicit and inspectable.
+- Mathematical correctness is deterministic and server checked.
+- District questions rotate daily from a reviewed server pool.
+- Browser `localStorage` provides an offline progression cache.
+- Profile changes sync to the API after a 500 ms debounce.
+- API file writes are serialized to prevent overlapping updates in one process.
+- Raw uploads use memory storage, a 5 MB limit, and a MIME allowlist.
+- PDF text is extracted by `pdf-parse`; raw files are not written to disk.
+- Grounded questions retain source sentences for evidence reveal.
+- Local WebP assets avoid key visual hotlink dependencies.
+- Reduced-motion preferences disable nonessential animation.
+
+## Current persistence
+
+`server/store.ts` provides serialized JSON persistence for single-process development. It stores profiles and generated study sets under the ignored `server/data/store.json`. This is real persistence but not a multi-instance production database.
 
 ## Production evolution
 
-Before production, split screen components and domain logic into separate modules, add route-level code splitting, and introduce:
+Before selling or deploying with students:
 
-1. A reviewed content API with immutable answer keys.
-2. A privacy-preserving identity and progress service.
-3. A constrained coaching service that cannot modify correctness.
-4. Educator content-review and audit tooling.
-5. Automated unit, integration, accessibility, and end-to-end tests.
+1. Replace demo IDs and JSON persistence with authenticated roles and managed PostgreSQL.
+2. Add immutable content versions, educator approval, reporting, and rollback.
+3. Add constrained AI coaching that cannot modify correctness.
+4. Add malware scanning, parser sandboxing, deletion controls, and retention jobs.
+5. Add observability, rate limiting, backups, integration tests, accessibility automation, and end-to-end tests.
+6. Complete COPPA, FERPA, threat-model, and age-appropriate design reviews.
 
-## Data boundaries
+## Data boundary
 
-The current prototype does not transmit student responses. It stores XP, district levels, and aggregate learning evidence in browser `localStorage`. Clearing site data removes that progress. Export excludes answers and reflection text. A production design should minimize collection, separate identity from learning events, define retention limits, encrypt data in transit and at rest, and support guardian/educator deletion workflows.
+The prototype syncs aggregate progress and generated study sets to a local API. Raw uploaded files are not persisted, but extracted excerpts are. Optional report export excludes answers and reflection text. Production must add explicit retention/deletion controls, tenant isolation, encrypted managed storage, and guardian/educator access workflows.

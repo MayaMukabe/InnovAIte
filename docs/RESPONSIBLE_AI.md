@@ -22,6 +22,8 @@ AI may generate constrained coaching hints and feedback on explanation clarity. 
 
 - Use deterministic validators for closed-form answers.
 - Version and review every question and answer key.
+- Ground uploaded-material practice in extractable source sentences and return source evidence.
+- Label generated practice as study support, not an authoritative interpretation.
 - Log content changes and permit educator reporting.
 
 ### Bias
@@ -34,6 +36,8 @@ AI may generate constrained coaching hints and feedback on explanation clarity. 
 ### Privacy
 
 - Collect the minimum data needed for learning.
+- Keep raw uploads in memory and enforce strict type and size limits.
+- Never use the prototype JSON store for real student records.
 - Do not use student responses to train models by default.
 - Establish COPPA and FERPA controls before collecting identifiable student data.
 - Publish retention, deletion, access, and incident-response procedures.

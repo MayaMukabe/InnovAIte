@@ -8,6 +8,8 @@ The prototype contains two independent loops:
 
 1. **Brain Builder quests:** choose one of five cognitive districts, think before seeing choices, attempt a challenge, receive process-only guidance, explain the strategy, and upgrade the city.
 2. **Glitch Boss battles:** solve five rapid-fire problems in 90 seconds. Correct answers damage the boss, consecutive hits earn combo damage, and mistakes cost time.
+3. **Material Studio:** upload TXT, Markdown, or PDF notes, learn through grounded source cards, then take an evidence-backed assessment.
+4. **Adventure Comics:** spend learning-earned XP to unlock original comic chapters and read them inside the app.
 
 AI is framed as a coach, never the mathematical authority. Correctness remains grounded in a pre-reviewed question bank; the student controls every decision and whether to request a hint.
 
@@ -22,15 +24,20 @@ npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite.
+`npm run dev` starts the Express API and Vite app together.
+
+- App: [http://localhost:5173](http://localhost:5173)
+- API health: [http://localhost:8787/api/health](http://localhost:8787/api/health)
 
 ## Commands
 
 ```bash
 npm run dev      # Start the development server
+npm run start    # Serve the built app and API
 npm run lint     # Run static analysis
 npm run test     # Run automated game-rule tests
 npm run build    # Type-check and create a production build
+npm run build:server # Type-check the API
 npm run preview  # Preview the production build locally
 ```
 
@@ -38,10 +45,13 @@ npm run preview  # Preview the production build locally
 
 - React 19 and TypeScript
 - Vite
+- Express 5 and Zod validation
+- Multer memory uploads and pdf-parse
+- Serialized file-backed development persistence
 - Plain CSS with responsive design tokens
 - ESLint with TypeScript and React Hooks rules
 
-The prototype intentionally has no backend. Brain City levels and XP are stored only in the current browser using `localStorage`; no responses are transmitted. Artwork is hotlinked from the supplied design references and should be replaced with licensed, project-owned assets before production.
+Progress syncs to Express and is cached in `localStorage` for offline resilience. Raw uploaded files remain in memory during extraction; generated study-set excerpts are persisted locally. Original artwork is stored under `public/images`.
 
 ## Documentation
 
@@ -51,12 +61,13 @@ The prototype intentionally has no backend. Brain City levels and XP are stored 
 - [Plain-language code logic](logic.md)
 - [Hackathon demo guide](docs/DEMO.md)
 - [Visual asset provenance](docs/ASSETS.md)
+- [API contract](docs/API.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 
 ## Project status
 
-This repository is a functional front-end prototype, not a production student-data system. Authentication, a reviewed content service, secure server persistence, educator controls, accessibility testing with students, and COPPA/FERPA review are required before classroom deployment.
+This repository is a functional full-stack hackathon prototype, not yet an approved production student-data system. Authentication, managed persistence, educator/guardian roles, browser accessibility tests, observability, rate limiting, backups, content operations, and COPPA/FERPA review remain required.
 
 ## License
 

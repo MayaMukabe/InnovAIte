@@ -1,6 +1,6 @@
 # Visual asset provenance
 
-The five Brain City environments were generated for this repository with OpenAI’s built-in image-generation tool on July 25, 2026. Outputs were resized to 1200 × 1200 and converted to WebP at quality 82 with `cwebp`.
+The original visuals below were generated for this repository with OpenAI’s built-in image-generation tool on July 25, 2026 and stored locally as WebP files.
 
 | District | Local asset |
 | --- | --- |
@@ -24,4 +24,19 @@ District details:
 - Art Studio: brush arches, glass roofs, origami gardens; coral, violet, turquoise.
 - Research Center: observatories, telescopes, drones, botanical samples; violet, indigo, cyan.
 
-Before commercial release, confirm intended asset-use terms and retain generation records.
+## Character and comic assets
+
+| Role | Local asset |
+| --- | --- |
+| Spark learning coach | `public/images/characters/spark-coach.webp` |
+| Active Glitch Boss | `public/images/characters/glitch-boss.webp` |
+| Defeated Glitch Boss | `public/images/characters/glitch-defeated.webp` |
+| Gearbound comic | `public/images/comics/gearbound.webp` |
+| Sky Library comic | `public/images/comics/sky-library.webp` |
+| Star Scouts comic | `public/images/comics/star-scouts.webp` |
+
+Character prompts used the supplied Hero Academy references and requested friendly expressions, readable silhouettes, and uncluttered backgrounds. The defeated Boss was edited from the active Boss for identity consistency.
+
+After visual review, the comic covers were regenerated using the supplied student-mentor artwork as a style reference: simplified 2D cel shading, crisp outlines, restrained blue/white/gold academy colors, one focal student hero, and no embedded title, logo, or watermark. This replaced the mismatched painterly fantasy treatment.
+
+Before commercial release, retain generation records and complete final art-direction, licensing, and rights reviews.

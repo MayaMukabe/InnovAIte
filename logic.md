@@ -1,51 +1,47 @@
 # How the code works
 
-## App navigation
+## Navigation and progression
 
-`App` stores the current screen: `academy`, `quests`, `boss`, or `library`. The bottom navigation changes that value and React displays the matching component.
+`App` switches between Academy, Quests, Boss, and Library. Library opens Material Studio or the XP Comic Shop as separate workflows.
 
-## Brain City
-
-`city` stores one level for each district: memory, logic, reading, creativity, and curiosity. A level controls the illustrated building’s height and progress bar. XP, district levels, and aggregate learning statistics are saved to browser `localStorage`.
-
-The Academy compares all five levels and recommends the lowest one. This transparent rule is the prototype’s adaptive-learning starting point; no hidden model profiles the learner.
+Learner progression contains XP, five district levels, activity dates, unlocks, and aggregate learning evidence. React updates immediately, caches it in `localStorage`, and debounces synchronization to the API. If the API is unavailable, play continues locally and the header shows offline mode. Rank, streak, Mindprint, and evidence cards are calculated from saved activity rather than demo numbers.
 
 ## Brain Builder quests
 
-`BrainQuest` moves through:
+`BrainQuest` follows:
 
 ```text
-think → attempt → reflect → grown
+think → attempt → guidance → reflect → grown
 ```
 
-- **Think:** The problem appears before answer choices.
-- **Attempt:** The student commits to an answer.
-- **Guidance:** A wrong attempt receives a strategy clue, not the answer.
-- **Reflect:** A correct attempt requires a written strategy.
-- **Grown:** The selected district gains one level and the learner earns XP.
-
-Approved answers live in `questContent`; generative AI does not decide correctness.
+Choices remain hidden during the thinking pause. The learner then attempts an answer, receives a process clue after a mistake, and explains a successful strategy before earning growth. The client requests reviewed content from `/api/questions/daily` and submits attempts to `/api/questions/check`; generative AI does not decide correctness. A small local question remains available offline.
 
 ## Glitch Boss
 
-`GlitchBoss` is an independent state machine:
+`GlitchBoss` is independent from quests:
 
 ```text
 intro → playing → won or lost
 ```
 
-A React effect runs a one-second timer and cleans it up when combat closes. The boss starts with 100 HP. Correct answers deal 20 damage; a charged combo deals 25. Incorrect answers reset the combo and remove seven seconds. Zero HP wins; zero time loses. Victory grants 150 XP plus the remaining seconds.
+A one-second timer runs during combat. Correct answers reduce the Boss’s 100 HP; a charged combo increases damage. Incorrect answers reset the combo and remove time. Correct attacks trigger screen shake, damage particles, and floating values. The final strike swaps to a dedicated defeated-Boss image and launches the victory sequence. Effects respect reduced-motion preferences.
 
-## Evidence and reports
+## Material Studio
 
-The app tracks completed quests, reflections, first-try wins, Boss wins, and best finish time. These totals power the Mindprint and achievements.
+The learner selects a `.txt`, `.md`, or `.pdf` file. `multer` holds it in memory, `pdf-parse` extracts PDF text, and `server/materials.ts` turns source sentences into review cards and source-grounded cloze questions. The raw file is never written to disk.
 
-Report export creates a JSON file in the browser. It includes totals, XP, and district levels but excludes answers and written reflections.
+The extracted set is saved by the prototype store and can be opened in Learn or Assess mode. The server checks answers and returns supporting source evidence. Completing a set grants XP once.
 
-## Shared rules
+## XP Comic Shop
 
-`src/gameLogic.ts` owns district caps, quest rewards, Boss damage, and Boss rewards. `src/gameLogic.test.ts` verifies them. The UI imports those functions so gameplay and tests share one source of truth.
+Comic metadata and chapters are authored in the client. Unlocking checks the learner’s XP, deducts the price, persists ownership, and opens the chapter reader.
 
-## Production boundaries
+## API and storage
 
-A production version should move reviewed questions to a versioned content API, progress to a privacy-reviewed service, and coaching to a constrained AI endpoint. AI may coach the process or assess explanation clarity; it must not replace the approved answer key.
+`server/index.ts` exposes health, profile, reviewed-question, and material endpoints. Zod validates requests. `server/store.ts` serializes JSON writes to prevent simultaneous updates from corrupting the prototype database.
+
+`src/gameLogic.ts` owns shared rewards, district caps, Boss damage, ranks, and streak calculations. Automated tests cover these rules and material generation.
+
+## Production boundary
+
+The JSON store is for a local hackathon build, not multi-user deployment. Commercial use requires authentication and guardian consent, a transactional database, per-user authorization, malware scanning, encrypted object storage, retention/deletion controls, observability, and reviewed content operations. AI may coach the process; it must not replace the approved answer key.
