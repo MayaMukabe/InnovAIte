@@ -19,7 +19,7 @@ The current `demo` ID is not authentication. Replace it with authenticated and a
 
 ## Reviewed district questions
 
-- `GET /api/questions/district/:district` returns safe content without answer indexes.
+- `GET /api/questions/district/:district?band=middle|high|proficient` returns level-aware safe content without answer indexes.
 - `POST /api/questions/district/:district/check` accepts `questionId` and `answer`, then returns correctness and process guidance.
 
 ## Materials

@@ -34,7 +34,7 @@ Brain Builder makes cognitive growth visible. Every effortful learning activity 
 
 ## Glitch Boss loop
 
-Boss Battles are separate, no-hint transfer challenges. The student has 90 seconds to defeat a 100-HP boss across five problems. Correct answers deal 20 damage, a sustained combo raises damage to 25, and incorrect attacks cost seven seconds. Winning awards base XP plus the remaining time.
+Boss Battles are separate, no-hint transfer challenges. Training Run, Challenger, and Mastery Siege change the learner band, timer, miss penalty, and bonus reward. Correct answers damage a 100-HP boss and sustained combos raise damage.
 
 ## Prototype scope
 
@@ -47,11 +47,12 @@ Included:
 - Deterministic correctness from local reviewed content
 - Local-first XP and city progression with API synchronization
 - Adaptive recommendations for the lowest-level district
-- Real activity-based streak, rank, Mindprint, achievements, and best Boss time
+- Real activity-based streak, rank, Mindprint, and best Boss time
+- 120 level-aware reviewed questions across five cognitive districts
 - Learner-controlled progress export with no response text
 - Original local artwork for all five districts
 - Material Studio for source-grounded learning and assessment from TXT, Markdown, or PDF
-- XP Comic Shop with persistent unlocks and chapter reading
+- XP Comic Catalog with persistent unlocks and original critical-reading missions
 - Validated Express API with reviewed question checks and prototype persistence
 
 Not yet included:

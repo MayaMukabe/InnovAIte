@@ -7,13 +7,13 @@ Brain Builder: Grow Your Mind is a game-based learning prototype that helps K–
 The prototype contains two independent loops:
 
 1. **Brain Builder quests:** choose one of five cognitive districts, think before seeing choices, attempt a challenge, receive process-only guidance, explain the strategy, and upgrade the city.
-2. **Glitch Boss battles:** solve five rapid-fire problems in 90 seconds. Correct answers damage the boss, consecutive hits earn combo damage, and mistakes cost time.
+2. **Glitch Boss battles:** choose Training Run, Challenger, or Mastery Siege. Each tier changes question level, timer, miss penalty, and XP bonus.
 3. **Material Studio:** upload TXT, Markdown, or PDF notes, learn through grounded source cards, then take an evidence-backed assessment.
-4. **Adventure Comics:** spend learning-earned XP to unlock original comic chapters and read them inside the app.
+4. **Comic spotlights:** spend learning-earned XP to unlock original reading missions built around popular-series catalog visuals.
 
-AI is framed as a coach, never the mathematical authority. Correctness remains grounded in a pre-reviewed question bank; the student controls every decision and whether to request a hint.
+AI is framed as a coach, never the mathematical authority. Correctness remains grounded in a 120-question, server-side bank spanning Middle School, High School, and Proficient levels; the student controls every decision.
 
-The Academy also includes adaptive district recommendations, a five-skill Mindprint, effort evidence, unlockable achievements, best Boss time, private progress export, and a visible responsible-AI trust model.
+The Academy also includes adaptive district recommendations, a five-skill Mindprint, effort evidence, real streaks, best Boss time, and private progress export.
 
 ## Quick start
 
@@ -48,6 +48,7 @@ npm run preview  # Preview the production build locally
 - Express 5 and Zod validation
 - Multer memory uploads and pdf-parse
 - Serialized file-backed development persistence
+- Vercel Functions deployment adapter with browser-first demo persistence
 - Plain CSS with responsive design tokens
 - ESLint with TypeScript and React Hooks rules
 

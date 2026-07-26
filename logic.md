@@ -14,7 +14,7 @@ Learner progression contains XP, five district levels, activity dates, unlocks, 
 think → attempt → guidance → reflect → grown
 ```
 
-Choices remain hidden during the thinking pause. The learner then attempts an answer, receives a process clue after a mistake, and explains a successful strategy before earning growth. The client requests reviewed content from `/api/questions/daily` and submits attempts to `/api/questions/check`; generative AI does not decide correctness. A small local question remains available offline.
+Choices remain hidden during the thinking pause. The learner then attempts an answer, receives a process clue after a mistake, and explains a successful strategy before earning growth. The client requests level-aware content from `/api/questions/district/:district?band=...` and submits attempts to `/api/questions/district/:district/check`; generative AI does not decide correctness. The 120-question bank covers five districts at Middle School, High School, and Proficient levels.
 
 ## Glitch Boss
 
@@ -24,7 +24,7 @@ Choices remain hidden during the thinking pause. The learner then attempts an an
 intro → playing → won or lost
 ```
 
-A one-second timer runs during combat. Correct answers reduce the Boss’s 100 HP; a charged combo increases damage. Incorrect answers reset the combo and remove time. Correct attacks trigger screen shake, damage particles, and floating values. The final strike swaps to a dedicated defeated-Boss image and launches the victory sequence. Effects respect reduced-motion preferences.
+A one-second timer runs during combat. Training Run, Challenger, and Mastery Siege independently control the question band, timer, miss penalty, and bonus reward. Correct answers reduce the Boss’s 100 HP; a charged combo increases damage. Correct attacks trigger screen shake, damage particles, and floating values. The final strike swaps to a dedicated defeated-Boss image. Effects respect reduced-motion preferences.
 
 ## Material Studio
 
@@ -34,14 +34,14 @@ The extracted set is saved by the prototype store and can be opened in Learn or 
 
 ## XP Comic Shop
 
-Comic metadata and chapters are authored in the client. Unlocking checks the learner’s XP, deducts the price, persists ownership, and opens the chapter reader.
+Comic spotlight metadata and original reading missions are authored in the client. Unlocking checks XP, deducts the price, persists ownership, and opens a critical-reading activity. Promotional artwork remains remotely hosted by each official franchise source; the app does not reproduce manga chapters.
 
 ## API and storage
 
-`server/index.ts` exposes health, profile, reviewed-question, and material endpoints. Zod validates requests. `server/store.ts` serializes JSON writes to prevent simultaneous updates from corrupting the prototype database.
+`server/app.ts` exposes health, profile, reviewed-question, and material endpoints. `server/index.ts` starts it locally; `api/` exports it as Vercel Functions. Zod validates requests. `server/store.ts` serializes local JSON writes.
 
 `src/gameLogic.ts` owns shared rewards, district caps, Boss damage, ranks, and streak calculations. Automated tests cover these rules and material generation.
 
 ## Production boundary
 
-The JSON store is for a local hackathon build, not multi-user deployment. Commercial use requires authentication and guardian consent, a transactional database, per-user authorization, malware scanning, encrypted object storage, retention/deletion controls, observability, and reviewed content operations. AI may coach the process; it must not replace the approved answer key.
+Local development uses JSON storage. Vercel uses ephemeral demo storage because function filesystems are not durable; browser progression remains local-first. Commercial use requires authentication and guardian consent, a transactional database, per-user authorization, malware scanning, encrypted object storage, retention/deletion controls, observability, and reviewed content operations.

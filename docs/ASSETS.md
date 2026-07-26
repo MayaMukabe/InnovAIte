@@ -31,12 +31,17 @@ District details:
 | Spark learning coach | `public/images/characters/spark-coach.webp` |
 | Active Glitch Boss | `public/images/characters/glitch-boss.webp` |
 | Defeated Glitch Boss | `public/images/characters/glitch-defeated.webp` |
-| Gearbound comic | `public/images/comics/gearbound.webp` |
-| Sky Library comic | `public/images/comics/sky-library.webp` |
-| Star Scouts comic | `public/images/comics/star-scouts.webp` |
 
 Character prompts used the supplied Hero Academy references and requested friendly expressions, readable silhouettes, and uncluttered backgrounds. The defeated Boss was edited from the active Boss for identity consistency.
 
-After visual review, the comic covers were regenerated using the supplied student-mentor artwork as a style reference: simplified 2D cel shading, crisp outlines, restrained blue/white/gold academy colors, one focal student hero, and no embedded title, logo, or watermark. This replaced the mismatched painterly fantasy treatment.
+The Library renders remote promotional artwork from first-party franchise pages:
+
+| Spotlight | Remote source |
+| --- | --- |
+| Gojo Satoru / Jujutsu Kaisen | `jujutsukaisen.jp/character/category6.php` |
+| Gear 5 Luffy / One Piece | `one-piece.com/figure/66345/index.html` |
+| Ayanokoji / Classroom of the Elite | `you-zitsu.com/1st/character/` |
+
+The repository does not copy these images or reproduce comic chapters. The app links each card to its official source and uses the artwork only for a catalog prototype. Obtain written licenses or replace the catalog before commercial release. Existing locally generated comic files are unused development history.
 
 Before commercial release, retain generation records and complete final art-direction, licensing, and rights reviews.

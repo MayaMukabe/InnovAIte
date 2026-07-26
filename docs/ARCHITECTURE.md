@@ -10,7 +10,7 @@ Browser
 ├── District quest state machine
 │   └── Think → Attempt → Reflect → Grow
 ├── Timed Glitch Boss combat
-├── XP comic shop and reader
+├── XP comic spotlight catalog and reading missions
 └── Material Studio
     ├── Upload
     ├── Learn cards
@@ -28,7 +28,7 @@ Express API
 
 - React state keeps each game loop explicit and inspectable.
 - Mathematical correctness is deterministic and server checked.
-- District questions rotate daily from a reviewed server pool.
+- District questions come from a 120-item server bank covering five skills and three learner bands.
 - Browser `localStorage` provides an offline progression cache.
 - Profile changes sync to the API after a 500 ms debounce.
 - API file writes are serialized to prevent overlapping updates in one process.
@@ -40,7 +40,7 @@ Express API
 
 ## Current persistence
 
-`server/store.ts` provides serialized JSON persistence for single-process development. It stores profiles and generated study sets under the ignored `server/data/store.json`. This is real persistence but not a multi-instance production database.
+`server/store.ts` provides serialized JSON persistence for single-process development. Vercel Functions use ephemeral in-memory demo storage because their filesystem is not durable; the client remains usable through its local cache. Neither mode is a multi-user production database.
 
 ## Production evolution
 
