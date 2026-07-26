@@ -1,4 +1,10 @@
 import { useEffect, useState } from 'react'
+import {
+  BookOpen, Brain, Check, CircleDot, ClipboardList, Cog, Download,
+  Grid3X3, LibraryBig, Lightbulb, Palette, Search, ShieldCheck,
+  Sparkles, Swords, Target, Telescope, Upload, UserRound, Zap,
+  type LucideIcon,
+} from 'lucide-react'
 import { bossDamage, bossReward, nextDistrictLevel, questReward } from './gameLogic'
 
 type Screen = 'academy' | 'quests' | 'boss' | 'library'
@@ -13,11 +19,11 @@ type LearningStats = {
 }
 
 const districts: Array<{ id: DistrictId; icon: string; name: string; building: string; skill: string; color: string; image: string }> = [
-  { id: 'memory', icon: '▤', name: 'Memory District', building: 'Grand Library', skill: 'Recall & retention', color: 'green', image: '/images/districts/grand-library.webp' },
-  { id: 'logic', icon: '⚙', name: 'Logic District', building: 'Engineering Lab', skill: 'Reasoning & math', color: 'blue', image: '/images/districts/engineering-lab.webp' },
-  { id: 'reading', icon: '▥', name: 'Reading District', building: 'Knowledge Tower', skill: 'Comprehension', color: 'yellow', image: '/images/districts/knowledge-tower.webp' },
-  { id: 'creativity', icon: '✦', name: 'Creativity District', building: 'Art Studio', skill: 'Ideas & expression', color: 'coral', image: '/images/districts/art-studio.webp' },
-  { id: 'curiosity', icon: '⌕', name: 'Curiosity District', building: 'Research Center', skill: 'Questions & discovery', color: 'purple', image: '/images/districts/research-center.webp' },
+  { id: 'memory', icon: 'memory', name: 'Memory District', building: 'Grand Library', skill: 'Recall & retention', color: 'green', image: '/images/districts/grand-library.webp' },
+  { id: 'logic', icon: 'logic', name: 'Logic District', building: 'Engineering Lab', skill: 'Reasoning & math', color: 'blue', image: '/images/districts/engineering-lab.webp' },
+  { id: 'reading', icon: 'reading', name: 'Reading District', building: 'Knowledge Tower', skill: 'Comprehension', color: 'yellow', image: '/images/districts/knowledge-tower.webp' },
+  { id: 'creativity', icon: 'creativity', name: 'Creativity District', building: 'Art Studio', skill: 'Ideas & expression', color: 'coral', image: '/images/districts/art-studio.webp' },
+  { id: 'curiosity', icon: 'curiosity', name: 'Curiosity District', building: 'Research Center', skill: 'Questions & discovery', color: 'purple', image: '/images/districts/research-center.webp' },
 ]
 
 const art = {
@@ -35,9 +41,24 @@ const art = {
     'https://lh3.googleusercontent.com/aida-public/AB6AXuAinB7GYzeT3_Z7oD8zRD6MlrK98IMDdsLh6CzM7XeAHa54pollD1bIzJsxNu8atY6u5fBQOy_8XcZHiaqrXONVQEuQ8imQ1YQtkbDYNSiLtqZrTAdXvaubxReSvuf-u9aWHsRM9H8MlJaIK3cJ7Z6idjahvpXuMdi64HKjmI4pDM34IKhLWalwG8Dvey7EOHBuhmDpKW5uL-aYhV5kAR8LsuQZo66hjOHwpq2owF7GdKgTkL5VH8lOD_mcr6w6SsNeN7AE8-GiMX8',
 }
 
-const Icon = ({ name }: { name: string }) => (
-  <span className="icon" aria-hidden="true">{name}</span>
-)
+const icons: Record<string, LucideIcon> = {
+  memory: BookOpen, logic: Cog, reading: LibraryBig, creativity: Palette, curiosity: Telescope,
+  academy: Grid3X3, quests: ClipboardList, boss: Swords, library: LibraryBig,
+  sparkles: Sparkles, zap: Zap, search: Search, upload: Upload, download: Download,
+  brain: Brain, coach: Lightbulb, target: Target, student: UserRound, check: Check,
+  reviewed: ShieldCheck, selected: CircleDot,
+}
+
+const iconAliases: Record<string, string> = {
+  '✦': 'sparkles', 'ϟ': 'zap', '⌕': 'search', '⇧': 'upload', '⇩': 'download',
+  '◎': 'brain', '◉': 'target', '♟': 'student', '✓': 'check',
+  '▦': 'academy', '▣': 'quests', '▤': 'library',
+}
+
+const Icon = ({ name }: { name: string }) => {
+  const Component = icons[iconAliases[name] ?? name] ?? Sparkles
+  return <Component className="icon" aria-hidden="true" strokeWidth={2.4} />
+}
 
 function Header({ xp }: { xp: number }) {
   return (
@@ -53,10 +74,10 @@ function Header({ xp }: { xp: number }) {
 
 function Nav({ screen, onChange }: { screen: Screen; onChange: (screen: Screen) => void }) {
   const items: Array<[Screen, string, string]> = [
-    ['academy', 'Academy', '▦'],
-    ['quests', 'Quests', '▣'],
-    ['boss', 'Boss', 'ϟ'],
-    ['library', 'Library', '▤'],
+    ['academy', 'Academy', 'academy'],
+    ['quests', 'Quests', 'quests'],
+    ['boss', 'Boss', 'boss'],
+    ['library', 'Library', 'library'],
   ]
   return (
     <nav className="bottom-nav" aria-label="Primary navigation">
@@ -100,7 +121,7 @@ function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: L
           <span className="eyebrow">BRAIN BUILDER</span>
           <h1>Grow your mind.<br /><em>Build your city.</em></h1>
           <p>Every thoughtful attempt upgrades a district in your Brain City. AI guides the journey—you do the thinking.</p>
-          <button className="button button-gold" onClick={() => startQuest(recommended.id)}>GROW {recommended.building.toUpperCase()} <Icon name="ϟ" /></button>
+          <button className="button button-gold" onClick={() => startQuest(recommended.id)}>BEGIN {recommended.name.replace(' District', '').toUpperCase()} MISSION <Icon name="zap" /></button>
           <small>Think → Attempt → Guidance → Understanding → Growth</small>
         </div>
         <div className="mentor-art">
@@ -117,7 +138,7 @@ function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: L
             {districts.map((district) => (
               <button className={`city-building ${district.color}`} onClick={() => startQuest(district.id)} key={district.id}>
                 <span className="building-level">LV {city[district.id]}</span>
-                <span className="building-shape" style={{ height: `${132 + city[district.id] * 9}px` }}><img src={district.image} alt="" /><i>{district.icon}</i></span>
+                <span className="building-shape" style={{ height: `${132 + city[district.id] * 9}px` }}><img src={district.image} alt="" /><i><Icon name={district.icon} /></i></span>
                 <strong>{district.building}</strong><small>{district.skill}</small>
               </button>
             ))}
@@ -160,7 +181,7 @@ function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: L
         <div className="section-heading"><div><span className="eyebrow">LEARNING EVIDENCE</span><h2>Your Mindprint</h2></div><span className="evidence-note">Private · Stored on this device</span></div>
         <div className="impact-grid">
           <article className="mindprint-card">
-            <div className="mindprint-core"><span>BRAIN</span><strong>{Math.round(totalGrowth / 25 * 100)}%</strong><small>city potential</small></div>
+            <div className="mindprint-core" style={{ background: `conic-gradient(var(--blue) ${Math.round(totalGrowth / 25 * 100)}%, #e5edf2 0)` }}><Icon name="brain" /><strong>{Math.round(totalGrowth / 25 * 100)}%</strong><small>mind potential</small></div>
             <div className="mindprint-skills">{districts.map((district) => <div key={district.id}><span>{district.name.replace(' District','')}</span><i><b className={district.color} style={{ width: `${city[district.id] / 5 * 100}%` }} /></i><strong>LV {city[district.id]}</strong></div>)}</div>
           </article>
           <article className="evidence-card">
@@ -173,10 +194,6 @@ function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: L
         <div className="achievement-row">{achievements.map((badge) => <article className={badge.unlocked ? 'unlocked' : ''} key={badge.name}><Icon name={badge.icon} /><div><strong>{badge.name}</strong><span>{badge.unlocked ? 'Unlocked' : 'Keep growing to unlock'}</span></div></article>)}</div>
       </section>
 
-      <section className="section trust-panel">
-        <div><span className="eyebrow">RESPONSIBLE AI, BUILT IN</span><h2>The student stays the hero.</h2><p>Brain Builder separates coaching from correctness so AI cannot quietly become the authority.</p></div>
-        <div className="trust-flow"><article><Icon name="♟" /><strong>Student controls</strong><span>Strategy, attempt, explanation</span></article><i>→</i><article><Icon name="✦" /><strong>AI may coach</strong><span>Questions and process hints</span></article><i>→</i><article><Icon name="✓" /><strong>Reviewed bank checks</strong><span>Answers and equivalence</span></article></div>
-      </section>
     </main>
   )
 }
