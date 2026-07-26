@@ -9,7 +9,7 @@ The prototype contains two independent loops:
 1. **Brain Builder quests:** choose one of five cognitive districts, think before seeing choices, attempt a challenge, receive process-only guidance, explain the strategy, and upgrade the city.
 2. **Glitch Boss battles:** choose Training Run, Challenger, or Mastery Siege. Each tier changes question level, timer, miss penalty, and XP bonus.
 3. **Academy Material Studio:** upload TXT, Markdown, or PDF notes, learn through grounded source cards, then take an evidence-backed assessment.
-4. **Manga rewards:** spend learning-earned XP to reveal one official licensed chapter link at a time—no lesson attached. Where a publisher does not provide chapter readers, the app links to its official volume page.
+4. **Manga rewards:** spend learning-earned XP across the full catalog track—1,188 One Piece chapters, all 271 Jujutsu Kaisen chapters, and all 12 licensed Classroom of the Elite manga volumes. Direct readers are used when verified; otherwise the unlock opens the publisher’s chapter catalog.
 
 AI is framed as a coach, never the mathematical authority. Correctness remains grounded in a 120-question, server-side bank spanning Middle School, High School, and Proficient levels; the student controls every decision.
 

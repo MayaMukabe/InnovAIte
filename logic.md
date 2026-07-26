@@ -34,7 +34,7 @@ The extracted set is saved by the prototype store and can be opened in Learn or 
 
 ## XP Comic Shop
 
-Manga reward metadata is authored in the client. Unlocking checks XP, deducts the price, persists ownership, and reveals one official licensed chapter link at a time. When a licensed publisher offers only volume pages, the interface labels and links that format honestly. Promotional artwork remains remotely hosted by each official franchise source; the app does not reproduce chapters or bypass publisher access controls.
+Manga reward metadata is authored in the client as generated full-catalog tracks rather than three fixed rewards. One Piece supports 1,188 sequential chapter unlocks, Jujutsu Kaisen supports all 271 chapters, and Classroom of the Elite supports all 12 licensed English manga volumes. Unlocking checks XP, deducts the price, and persists ownership. Verified direct readers open the chapter; other entries open the official publisher catalog so the reader can select it under the publisher’s availability rules. The app does not reproduce chapters or bypass publisher access controls.
 
 ## API and storage
 
