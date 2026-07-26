@@ -1,15 +1,13 @@
 # InnovAIte — Hero Academy
 
-Hero Academy is a game-based learning prototype that helps K–12 students practice independent reasoning in an AI-rich world. Instead of generating answers, it presents intentionally flawed solutions and asks the learner to identify, repair, and explain the mistake before proving transfer on a fresh problem.
+Brain Builder: Grow Your Mind is a game-based learning prototype that helps K–12 students practice independent reasoning in an AI-rich world. Learning grows a virtual Brain City, while timed Glitch Boss battles let students apply the skills they have built.
 
 ## Core experience
 
-The prototype combines an academy progression hub with a four-stage “Glitch Hunt”:
+The prototype contains two independent loops:
 
-1. Spot the first incorrect step.
-2. Repair the solution.
-3. Explain why the repair works.
-4. Complete a no-hint Final Attack.
+1. **Brain Builder quests:** choose one of five cognitive districts, think before seeing choices, attempt a challenge, receive process-only guidance, explain the strategy, and upgrade the city.
+2. **Glitch Boss battles:** solve five rapid-fire problems in 90 seconds. Correct answers damage the boss, consecutive hits earn combo damage, and mistakes cost time.
 
 AI is framed as a coach, never the mathematical authority. Correctness remains grounded in a pre-reviewed question bank; the student controls every decision and whether to request a hint.
 
@@ -40,19 +38,21 @@ npm run preview  # Preview the production build locally
 - Plain CSS with responsive design tokens
 - ESLint with TypeScript and React Hooks rules
 
-The prototype intentionally has no backend and stores no student data. Artwork is hotlinked from the supplied design references and should be replaced with licensed, project-owned assets before production.
+The prototype intentionally has no backend. Brain City levels and XP are stored only in the current browser using `localStorage`; no responses are transmitted. Artwork is hotlinked from the supplied design references and should be replaced with licensed, project-owned assets before production.
 
 ## Documentation
 
 - [Product specification](docs/PRODUCT.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Responsible AI](docs/RESPONSIBLE_AI.md)
+- [Plain-language code logic](LOGIC.md)
+- [Hackathon demo guide](docs/DEMO.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 
 ## Project status
 
-This repository is a functional front-end prototype, not a production student-data system. Authentication, a reviewed content service, persistent progress, educator controls, accessibility testing with students, and COPPA/FERPA review are required before classroom deployment.
+This repository is a functional front-end prototype, not a production student-data system. Authentication, a reviewed content service, secure server persistence, educator controls, accessibility testing with students, and COPPA/FERPA review are required before classroom deployment.
 
 ## License
 

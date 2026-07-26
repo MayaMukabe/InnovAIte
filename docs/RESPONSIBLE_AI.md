@@ -2,7 +2,7 @@
 
 ## Human authority
 
-The learner decides which step is wrong, how to repair it, why it was wrong, how to solve the transfer problem, and when to request a hint. The system must never silently complete these decisions.
+The learner forms a strategy, commits to an answer, decides how to use coaching, explains the reasoning, and solves Boss Battle problems without hints. The system must never silently complete these decisions.
 
 ## Model boundary
 
@@ -12,9 +12,11 @@ AI may generate constrained coaching hints and feedback on explanation clarity. 
 
 ### Overreliance
 
-- Hints are optional, progressive, and visibly costly.
-- Hints reveal strategy before procedure and never reveal the final answer.
-- A no-hint transfer round confirms that the learner can apply the strategy.
+- Choices remain hidden until the student confirms a thinking pause.
+- Guidance follows an attempt, targets the process, and never reveals the final answer.
+- Reflection makes the learner articulate a strategy.
+- No-hint Boss Battles test application under a new constraint.
+- City growth rewards persistence and explanation, not only first-try correctness.
 
 ### Accuracy
 

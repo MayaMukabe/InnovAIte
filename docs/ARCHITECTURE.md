@@ -2,26 +2,32 @@
 
 ## Overview
 
-Hero Academy is currently a client-only React single-page application. `src/App.tsx` contains the prototype screens and state machine; `src/styles.css` contains the visual system and responsive behavior.
+Brain Builder is currently a client-only React single-page application. `src/App.tsx` contains the prototype screens, reviewed content, city progression, learning state machine, and boss combat engine. `src/styles.css` contains the visual system and responsive behavior.
 
 ```text
 Browser
 ├── App shell
 │   ├── Header
 │   └── Primary navigation
-├── Academy / Library / Boss
-└── Quest state machine
-    ├── Detect
-    ├── Repair
-    ├── Explain
-    ├── Transfer
-    └── Victory
+├── Brain City
+│   └── District quest state machine
+│       ├── Think
+│       ├── Attempt
+│       ├── Reflect
+│       └── Grow
+├── Glitch Boss
+│   ├── Countdown timer
+│   ├── Question and attack engine
+│   └── Victory / timeout result
+└── Library
 ```
 
 ## Design decisions
 
 - Local React state keeps the prototype inspectable and dependency-light.
 - Mathematical checks are deterministic rather than model-generated.
+- The Boss timer is created and cleaned up with a React effect.
+- XP and district levels use `localStorage` so progress survives refreshes.
 - Navigation avoids a router while the screen set remains small.
 - Plain CSS exposes all design tokens and avoids runtime styling overhead.
 - Reduced-motion preferences are respected globally.
@@ -38,4 +44,4 @@ Before production, split screen components and domain logic into separate module
 
 ## Data boundaries
 
-The current prototype does not transmit or persist student responses. A production design should minimize collection, separate identity from learning events, define retention limits, encrypt data in transit and at rest, and support guardian/educator deletion workflows.
+The current prototype does not transmit student responses. It stores only XP and district levels in browser `localStorage`. Clearing site data removes that progress. A production design should minimize collection, separate identity from learning events, define retention limits, encrypt data in transit and at rest, and support guardian/educator deletion workflows.

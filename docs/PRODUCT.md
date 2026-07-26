@@ -10,26 +10,42 @@ Primary users are K–12 students, especially middle- and high-school learners w
 
 ## Product promise
 
-Hero Academy makes independent reasoning feel like a game. Students battle intentionally flawed solutions, repair the logic, explain their thinking, and complete a fresh transfer problem.
+Brain Builder makes cognitive growth visible. Every effortful learning activity upgrades a virtual district, and Boss Battles turn growing skills into exciting transfer challenges.
 
-## Learning loop
+## Brain Builder learning loop
 
 | Stage | Student action | System role |
 | --- | --- | --- |
-| Detect | Select the first incorrect step | Present a reviewed flawed solution |
-| Repair | Enter a corrected answer | Validate against the approved answer |
-| Explain | Describe the error and correction | Coach for clarity and completeness |
-| Transfer | Solve a new problem without hints | Confirm independent strategy use |
+| Think | Form a strategy before choices appear | Create a deliberate pause |
+| Attempt | Commit to an answer | Validate against reviewed content |
+| Guidance | Retry after a process-only clue | Coach without revealing the answer |
+| Reflect | Explain the strategy in original words | Require visible reasoning |
+| Grow | Upgrade the selected city building | Reward effort, progress, and understanding |
+
+## Brain City districts
+
+| Cognitive skill | Virtual district |
+| --- | --- |
+| Memory and retention | Grand Library |
+| Logic, math, and reasoning | Engineering Lab |
+| Reading and comprehension | Knowledge Tower |
+| Creativity and expression | Art Studio |
+| Curiosity and investigation | Research Center |
+
+## Glitch Boss loop
+
+Boss Battles are separate, no-hint transfer challenges. The student has 90 seconds to defeat a 100-HP boss across five problems. Correct answers deal 20 damage, a sustained combo raises damage to 25, and incorrect attacks cost seven seconds. Winning awards base XP plus the remaining time.
 
 ## Prototype scope
 
 Included:
 
-- Responsive Academy, Library, Boss, Quest, and Victory states
-- Learner-controlled hint requests with visible cost
-- Deterministic math validation for the main battle
-- Written reasoning checkpoint
-- No-hint transfer round
+- Five persistent Brain City districts
+- Think–attempt–guidance–reflection–growth quest flow
+- Distinct challenges for memory, logic, reading, creativity, and curiosity
+- Independent timed Boss Battle with HP, damage, combo, and time penalties
+- Deterministic correctness from local reviewed content
+- Browser-only XP and city progression
 
 Not yet included:
 
