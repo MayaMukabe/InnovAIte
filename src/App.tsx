@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   BookOpen, Brain, Check, CircleDot, ClipboardList, Cog, Download,
   Grid3X3, LibraryBig, Lightbulb, Palette, Search, ShieldCheck,
@@ -99,6 +99,57 @@ const iconAliases: Record<string, string> = {
 const Icon = ({ name }: { name: string }) => {
   const Component = icons[iconAliases[name] ?? name] ?? Sparkles
   return <Component className="icon" aria-hidden="true" strokeWidth={2.4} />
+}
+
+function GameCursor() {
+  const cursor = useRef<HTMLDivElement>(null)
+  const trail = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const supportsCursor = window.matchMedia('(pointer: fine)').matches
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!supportsCursor || reduceMotion) return
+
+    let trailX = -40
+    let trailY = -40
+    let targetX = -40
+    let targetY = -40
+    let frame = 0
+    const animateTrail = () => {
+      trailX += (targetX - trailX) * .2
+      trailY += (targetY - trailY) * .2
+      trail.current?.style.setProperty('transform', `translate3d(${trailX}px,${trailY}px,0)`)
+      frame = requestAnimationFrame(animateTrail)
+    }
+    const move = (event: PointerEvent) => {
+      targetX = event.clientX
+      targetY = event.clientY
+      cursor.current?.style.setProperty('transform', `translate3d(${targetX}px,${targetY}px,0)`)
+      cursor.current?.classList.add('visible')
+      trail.current?.classList.add('visible')
+      cursor.current?.classList.toggle('over-action', Boolean((event.target as Element).closest('button, a, input, select, label')))
+    }
+    const leave = () => {
+      cursor.current?.classList.remove('visible')
+      trail.current?.classList.remove('visible')
+    }
+    const press = () => {
+      cursor.current?.classList.remove('cursor-strike')
+      requestAnimationFrame(() => cursor.current?.classList.add('cursor-strike'))
+    }
+    frame = requestAnimationFrame(animateTrail)
+    window.addEventListener('pointermove', move)
+    document.documentElement.addEventListener('mouseleave', leave)
+    window.addEventListener('pointerdown', press)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('pointermove', move)
+      document.documentElement.removeEventListener('mouseleave', leave)
+      window.removeEventListener('pointerdown', press)
+    }
+  }, [])
+
+  return <><div className="game-cursor" ref={cursor}><i /><b>✦</b></div><div className="cursor-trail" ref={trail}>✦</div></>
 }
 
 function Header({ xp, learnerBand, onBandChange, syncStatus }: { xp: number; learnerBand: LearnerBand; onBandChange: (band: LearnerBand) => void; syncStatus: 'loading' | 'synced' | 'offline' }) {
@@ -667,6 +718,7 @@ function App() {
 
   return (
     <div className="app">
+      <GameCursor />
       <Header xp={xp} learnerBand={learnerBand} onBandChange={setLearnerBand} syncStatus={syncStatus} />
       {screen === 'academy' && <Academy city={city} stats={stats} xp={xp} startQuest={startQuest} onMaterialReward={completeMaterial} />}
       {screen === 'library' && <Library xp={xp} comics={comics} onUnlock={unlockComic} />}
