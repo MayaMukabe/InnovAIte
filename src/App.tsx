@@ -134,6 +134,7 @@ function Academy({ city, stats, xp, startQuest }: { city: CityProgress; stats: L
         <div className="section-heading"><div><span className="eyebrow">YOUR MIND, MADE VISIBLE</span><h2>Brain City</h2></div><strong className="city-score">{totalGrowth} growth points</strong></div>
         <div className="brain-city">
           <div className="city-weather"><span>☀ MIND CITY · CLEAR</span><strong>Curiosity powers everything</strong></div>
+          <div className="city-coach-tip"><img src="/images/characters/spark-coach.webp" alt="" /><span><strong>Spark’s pick</strong>{recommended.building} is ready for its next breakthrough!</span></div>
           <div className="city-skyline" aria-label="Your growing virtual brain city">
             {districts.map((district) => (
               <button className={`city-building ${district.color}`} onClick={() => startQuest(district.id)} key={district.id}>
@@ -347,6 +348,13 @@ function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId
   const [reflection, setReflection] = useState('')
   const [message, setMessage] = useState('')
   const [attempts, setAttempts] = useState(0)
+  const coachLine = stage === 'think'
+    ? `Try this: ${content.think}`
+    : stage === 'attempt' && attempts > 0
+      ? `Let’s shift perspective. ${content.think}`
+      : stage === 'reflect'
+        ? 'You solved it—now teach the strategy back to me. Teaching makes the pathway stronger!'
+        : 'Trust your first strategy, then adjust if the evidence changes.'
 
   const checkAnswer = () => {
     setAttempts((value) => value + 1)
@@ -385,7 +393,7 @@ function BrainQuest({ districtId, onComplete, goHome }: { districtId: DistrictId
               const active = ['think','attempt','reflect','grown'].indexOf(stage) >= index
               return <span className={active ? 'active' : ''} key={item}><i>{active ? '✓' : index + 1}</i>{item}</span>
             })}
-            <blockquote><strong>AI Coach</strong>{stage === 'think' ? content.think : 'I will guide your process, but the decision stays yours.'}</blockquote>
+            <div className="coach-companion"><div className="coach-portrait"><img src="/images/characters/spark-coach.webp" alt="Spark, your AI learning coach" /><span><Icon name="sparkles" /></span></div><strong>Spark · AI Coach</strong><p>{coachLine}</p><small>Guides your thinking · Never gives the answer</small></div>
           </aside>
           <article className="learning-card">
             {stage === 'think' && <><span className="eyebrow">THINK BEFORE ANSWERS</span><h2>{content.prompt}</h2><div className="think-pause"><Icon name="◎" /><div><strong>Take a thinking pause</strong><p>Build a strategy in your head before choices appear.</p></div></div><button className="button button-blue" onClick={() => setStage('attempt')}>I HAVE A STRATEGY →</button></>}
